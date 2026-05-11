@@ -932,10 +932,31 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
       : type === 'checkValve' ? '#8b5cf6'
       : '#14b8a6';
 
+    const sourceNode = get().nodes.find(n => n.id === sourceId);
+    const targetNode = get().nodes.find(n => n.id === targetId);
+    let sourceHandle = 't-right';
+    let targetHandle = 't-left';
+    if (sourceNode && targetNode) {
+      const dx = targetNode.position.x - sourceNode.position.x;
+      const dy = targetNode.position.y - sourceNode.position.y;
+      const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+      if (angle >= -45 && angle < 45) {
+        sourceHandle = 't-right'; targetHandle = 't-left';
+      } else if (angle >= 45 && angle < 135) {
+        sourceHandle = 't-bottom'; targetHandle = 't-top';
+      } else if (angle >= 135 || angle < -135) {
+        sourceHandle = 't-left'; targetHandle = 't-right';
+      } else {
+        sourceHandle = 't-top'; targetHandle = 't-bottom';
+      }
+    }
+
     const newEdge: WhamoEdge = {
       id,
       source: sourceId,
       target: targetId,
+      sourceHandle,
+      targetHandle,
       type: 'connection',
       style: { stroke: strokeColor, strokeWidth: 2.5 },
       markerEnd: {
