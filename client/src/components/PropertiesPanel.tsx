@@ -46,8 +46,13 @@ function NumericInput({ value, onValueChange, ...props }: NumericInputProps) {
 
 function VScheduleInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const [raw, setRaw] = useState(() => String(value));
+  const skipNextSync = useRef(false);
 
   useEffect(() => {
+    if (skipNextSync.current) {
+      skipNextSync.current = false;
+      return;
+    }
     setRaw(String(value));
   }, [value]);
 
@@ -66,7 +71,8 @@ function VScheduleInput({ value, onChange }: { value: number; onChange: (v: numb
       onBlur={() => {
         const parsed = parseFloat(raw);
         const final = isNaN(parsed) ? 0 : parsed;
-        setRaw(String(final));
+        if (raw === '' || raw === '-') setRaw('0');
+        skipNextSync.current = true;
         onChange(final);
       }}
     />
