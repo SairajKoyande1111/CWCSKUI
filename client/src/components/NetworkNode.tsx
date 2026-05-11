@@ -341,8 +341,11 @@ export const TurbineNode = memo(({ id, data, selected }: NodeProps) => {
           <rect x="32" y="2" width="8" height="6" rx="1" fill="#0d9488"/>
         </svg>
 
-        <div className="absolute -top-6 text-[10px] font-bold text-teal-900 bg-white/80 px-1 rounded border border-teal-200 shadow-sm whitespace-nowrap">
+        <div className="absolute -top-6 text-[10px] font-bold text-teal-900 bg-white/80 px-1 rounded border border-teal-200 shadow-sm whitespace-nowrap flex items-center gap-1">
           {data.label as React.ReactNode}
+          {data.nodeNumber !== undefined && (
+            <span className="text-[9px] font-semibold text-teal-600">#{data.nodeNumber as React.ReactNode}</span>
+          )}
         </div>
       </div>
     </TooltipWrapper>
