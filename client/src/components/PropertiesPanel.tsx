@@ -58,7 +58,7 @@ function VScheduleInput({ value, onChange }: { value: number; onChange: (v: numb
 
   return (
     <input
-      className="flex-1 h-6 px-1.5 text-[10px] border rounded"
+      className="w-16 min-w-0 h-6 px-1.5 text-[10px] border rounded"
       type="text"
       inputMode="decimal"
       value={raw}
@@ -349,7 +349,7 @@ export function PropertiesPanel() {
 
     if (isNodeEl) {
       const thisNode = nodes.find(n => n.id === selectedElementId);
-      const elementTypes = new Set(['pump', 'checkValve']);
+      const elementTypes = new Set(['pump', 'checkValve', 'turbine']);
 
       // Block save if new nodeNumber violates ascending order for non-element nodes
       if (thisNode && !elementTypes.has(thisNode.type!)) {
