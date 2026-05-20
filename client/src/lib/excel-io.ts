@@ -296,13 +296,13 @@ function getRowValue(
 
   // Reservoir H Schedule: hScheduleNumber defaults to 1 and is always numeric
   if (col.key === 'hScheduleNumber') {
-    if (data.mode !== 'schedule') return 'NA';
+    if (data.mode !== 'schedule') return ''; // leave blank so changing mode in Excel gives a clean cell
     return Number(data.hScheduleNumber ?? 1);
   }
 
   // T/H Pairs (reservoir H Schedule mode) — editable format: "time:head; time:head; ..."
   if (col.key === '_thPairs') {
-    if (data.mode !== 'schedule') return 'NA';
+    if (data.mode !== 'schedule') return ''; // leave blank so changing mode in Excel gives a clean cell
     // Coerce to number to handle string-stored values from FlexTable text inputs
     const schedNum = Number(data.hScheduleNumber ?? 1);
     const sched = hSchedules?.find(s => Number(s.number) === schedNum);
@@ -310,8 +310,8 @@ function getRowValue(
     return sched.points.map(p => `${p.time}:${p.head}`).join('; ');
   }
 
-  // Conditionally locked cells show NA
-  if (isConditionallyLocked(col, data)) return 'NA';
+  // Conditionally locked cells: leave blank (amber background is the visual indicator)
+  if (isConditionallyLocked(col, data)) return '';
 
   const val = data[col.key];
   if (val === undefined || val === null) return '';
@@ -589,13 +589,15 @@ export async function exportTabToExcel(
           ],
         });
       }
-      // T/H Pairs: locked when BC Mode = "Fixed Elevation"
+      // T/H Pairs: locked when BC Mode = "Fixed Elevation", active when "H Schedule"
       if (thPairsIdx >= 0) {
         ws.addConditionalFormatting({
           ref: cfDataRange(thPairsIdx),
           rules: [
             { type: 'expression', priority: 1,
               formulae: [`$${modeCol}3="Fixed Elevation"`], style: lockedStyle },
+            { type: 'expression', priority: 2,
+              formulae: [`$${modeCol}3="H Schedule"`], style: activeStyle },
           ],
         });
       }
