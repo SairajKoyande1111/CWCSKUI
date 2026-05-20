@@ -139,6 +139,7 @@ function EditableCell({ value, type = 'text', onChange, readOnly, dimmed, testId
   const [editing, setEditing] = useState(false);
   const [localVal, setLocalVal] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const tdRef = useRef<HTMLTableCellElement>(null);
   const display = value === undefined || value === null ? '' : String(value);
 
   // Show NA for dimmed/read-only cells with no value
@@ -148,26 +149,96 @@ function EditableCell({ value, type = 'text', onChange, readOnly, dimmed, testId
     return <NACell minW={minW} />;
   }
 
+  const isEditable = !readOnly && !!onChange;
+
   const startEdit = () => {
-    if (readOnly || !onChange) return;
+    if (!isEditable) return;
     setLocalVal(display);
     setEditing(true);
     setTimeout(() => inputRef.current?.select(), 0);
   };
+
   const commit = () => {
     setEditing(false);
     if (onChange && localVal !== display) onChange(localVal);
   };
 
+  const getAdjacentCell = (direction: 'next' | 'prev' | 'up' | 'down'): HTMLElement | null => {
+    const currentTd = tdRef.current;
+    if (!currentTd) return null;
+
+    if (direction === 'next' || direction === 'prev') {
+      const allCells = Array.from(document.querySelectorAll<HTMLElement>('td[data-editable="true"]'));
+      const idx = allCells.indexOf(currentTd);
+      return direction === 'next' ? (allCells[idx + 1] ?? null) : (allCells[idx - 1] ?? null);
+    }
+
+    // Up / Down — same column index, adjacent row
+    const currentTr = currentTd.parentElement;
+    if (!currentTr) return null;
+    const colIndex = Array.from(currentTr.children).indexOf(currentTd);
+    const siblingTr = (direction === 'down'
+      ? currentTr.nextElementSibling
+      : currentTr.previousElementSibling) as HTMLElement | null;
+    if (!siblingTr) return null;
+    const siblingTd = siblingTr.children[colIndex] as HTMLElement | null;
+    return siblingTd?.dataset?.editable === 'true' ? siblingTd : null;
+  };
+
+  const navigateToCell = (td: HTMLElement | null) => {
+    if (td) setTimeout(() => td.focus(), 0);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      setEditing(false);
+      return;
+    }
+    if (e.key === 'Enter') {
+      const target = getAdjacentCell('down');
+      inputRef.current?.blur();
+      navigateToCell(target);
+      return;
+    }
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const target = getAdjacentCell(e.shiftKey ? 'prev' : 'next');
+      inputRef.current?.blur();
+      navigateToCell(target);
+      return;
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const target = getAdjacentCell('down');
+      inputRef.current?.blur();
+      navigateToCell(target);
+      return;
+    }
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const target = getAdjacentCell('up');
+      inputRef.current?.blur();
+      navigateToCell(target);
+    }
+  };
+
   return (
     <td
+      ref={tdRef}
+      data-editable={isEditable ? 'true' : undefined}
+      tabIndex={isEditable ? 0 : -1}
       className={cn(
         'border-r border-slate-200 relative',
         minW,
-        !readOnly && onChange ? 'cursor-text hover:bg-blue-50/50' : 'cursor-default',
+        isEditable ? 'cursor-text hover:bg-blue-50/50 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-blue-400' : 'cursor-default',
         dimmed && 'bg-slate-50 opacity-40'
       )}
       onClick={startEdit}
+      onFocus={(e) => {
+        // Only trigger startEdit when the td itself is focused (keyboard nav),
+        // not when a child element (the input) gains focus.
+        if (e.target === e.currentTarget) startEdit();
+      }}
     >
       {editing ? (
         <input
@@ -179,7 +250,7 @@ function EditableCell({ value, type = 'text', onChange, readOnly, dimmed, testId
           value={localVal}
           onChange={e => setLocalVal(e.target.value)}
           onBlur={commit}
-          onKeyDown={e => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') setEditing(false); }}
+          onKeyDown={handleKeyDown}
         />
       ) : (
         <span className="block px-2 py-[7px] text-xs truncate">{display}</span>
