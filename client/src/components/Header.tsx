@@ -904,11 +904,13 @@ export function Header({
                             const el =
                               nodes.find((n) => n.id === req.elementId) ||
                               edges.find((e) => e.id === req.elementId);
-                            const isNodeElement = req.elementType === 'node' && el?.data?.type === 'surgeTank' && req.isElement;
-                            const displayLabel = isNodeElement 
-                              ? el?.data?.label 
+                            const isEdgeElem = req.elementType === 'edge';
+                            const isSurgeTankElem = req.elementType === 'node' && el?.data?.type === 'surgeTank' && req.isElement;
+                            const useElem = isEdgeElem || isSurgeTankElem;
+                            const displayLabel = useElem
+                              ? (el?.data?.label || req.elementId)
                               : (el?.data?.nodeNumber?.toString() || el?.data?.label || req.elementId);
-                            const prefix = isNodeElement ? 'ELEM' : (req.elementType === 'node' ? 'NODE' : 'Node');
+                            const prefix = useElem ? 'ELEM' : 'NODE';
                             return (
                               <div
                                 key={`${req.id}-${req.requestType}`}

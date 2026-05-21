@@ -653,7 +653,8 @@ export function generateInpFile(nodes: WhamoNode[], edges: WhamoEdge[], autoDown
           : edges.find(e => e.id === req.elementId);
 
         const edgeElemType = req.elementType === 'edge' ? (element?.data?.type as string) : null;
-        const isElementEdge = edgeElemType === 'pump' || edgeElemType === 'checkValve' || edgeElemType === 'turbine';
+        // All edge-type elements (conduit, dummy, pump, checkValve, turbine) use ELEM syntax
+        const isElementEdge = req.elementType === 'edge';
         if (isElementEdge) {
           addL(` ELEM ${element?.data?.label || req.elementId} ${req.variables.join(' ')}`);
           return;
