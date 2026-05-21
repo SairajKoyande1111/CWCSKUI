@@ -75,9 +75,7 @@ export const SimpleNode = memo(({ id, data, selected }: NodeProps) => {
         "w-6 h-6 rounded-full border-2 shadow-sm flex items-center justify-center transition-all relative group bg-white",
         hasOrderError ? "border-red-500 ring-2 ring-red-500/30" : selected ? "border-blue-600 ring-2 ring-blue-600/20" : "border-blue-500"
       )}>
-        <div className="w-4 h-4 rounded-full border border-blue-400 bg-white flex items-center justify-center">
-          <span className="text-[8px] font-bold text-blue-600">N{data.nodeNumber as React.ReactNode}</span>
-        </div>
+        <span className="text-[8px] font-bold text-blue-600">N{data.nodeNumber as React.ReactNode}</span>
 
         <Handle type="target" id="t-top" position={Position.Top} className={HandleStyle} />
         <Handle type="source" id="s-top" position={Position.Top} className={HandleStyle} />
@@ -104,9 +102,7 @@ export const JunctionNode = memo(({ id, data, selected }: NodeProps) => {
         "w-6 h-6 rounded-full border-2 shadow-sm flex items-center justify-center transition-all relative group bg-white",
         hasOrderError ? "border-red-500 ring-4 ring-red-500/50" : selected ? "border-red-600 ring-2 ring-red-600/20" : "border-red-500"
       )}>
-        <div className="w-4 h-4 rounded-full border border-red-400 bg-white flex items-center justify-center">
-          <span className="text-[8px] font-bold text-red-600">J{data.nodeNumber as React.ReactNode}</span>
-        </div>
+        <span className="text-[8px] font-bold text-red-600">J{data.nodeNumber as React.ReactNode}</span>
 
         <Handle type="target" id="t-top" position={Position.Top} className={clsx(HandleStyle, "!bg-red-500")} />
         <Handle type="source" id="s-top" position={Position.Top} className={clsx(HandleStyle, "!bg-red-500")} />
@@ -168,9 +164,11 @@ export const PumpNode = memo(({ id, data, selected }: NodeProps) => {
   return (
     <TooltipWrapper content={<DataList data={displayData} title="Pump Properties" />}>
       <div className={clsx(
-        "w-[72px] h-[56px] transition-all group relative flex items-center justify-center",
+        "w-8 h-8 rounded-full border-2 shadow-sm flex items-center justify-center transition-all relative group bg-white",
+        hasOrderError ? "border-red-500 ring-2 ring-red-500/30" : selected ? "border-orange-600 ring-2 ring-orange-600/20" : "border-orange-500"
       )}>
-        <ErrorRing show={hasOrderError} />
+        <span className="text-[8px] font-bold text-orange-600 leading-none">{data.label as React.ReactNode}</span>
+
         <Handle type="target" id="t-top" position={Position.Top} className={clsx(HandleStyle, "!bg-orange-500")} />
         <Handle type="source" id="s-top" position={Position.Top} className={clsx(HandleStyle, "!bg-orange-500")} />
         <Handle type="target" id="t-bottom" position={Position.Bottom} className={clsx(HandleStyle, "!bg-orange-500")} />
@@ -179,40 +177,6 @@ export const PumpNode = memo(({ id, data, selected }: NodeProps) => {
         <Handle type="source" id="s-left" position={Position.Left} className={clsx(HandleStyle, "!bg-orange-500")} />
         <Handle type="target" id="t-right" position={Position.Right} className={clsx(HandleStyle, "!bg-orange-500")} />
         <Handle type="source" id="s-right" position={Position.Right} className={clsx(HandleStyle, "!bg-orange-500")} />
-
-        {/* 2D Centrifugal Pump Engineering Icon — no background */}
-        <svg
-          width="72" height="56" viewBox="0 0 72 56" fill="none"
-          className={clsx("transition-all", selected ? "drop-shadow-[0_0_10px_rgba(249,115,22,0.9)]" : "")}
-        >
-          {/* Motor housing */}
-          <rect x="1" y="12" width="22" height="32" rx="4" fill="#fb923c"/>
-          {/* Cooling fins on motor */}
-          <rect x="6"  y="12" width="2" height="32" rx="1" fill="#ea580c" opacity="0.8"/>
-          <rect x="11" y="12" width="2" height="32" rx="1" fill="#ea580c" opacity="0.8"/>
-          <rect x="16" y="12" width="2" height="32" rx="1" fill="#ea580c" opacity="0.8"/>
-          {/* Motor end cap (face) */}
-          <ellipse cx="23" cy="28" rx="5" ry="14" fill="#ea580c"/>
-          {/* Shaft coupling */}
-          <rect x="28" y="25" width="6" height="6" rx="2" fill="#c2410c"/>
-          {/* Pump volute casing */}
-          <circle cx="50" cy="28" r="20" fill="#fb923c"/>
-          {/* Volute scroll detail */}
-          <circle cx="50" cy="28" r="12" fill="none" stroke="#ea580c" strokeWidth="2"/>
-          {/* Impeller hub */}
-          <circle cx="50" cy="28" r="6" fill="#ea580c"/>
-          <circle cx="50" cy="28" r="3" fill="#c2410c"/>
-          {/* Discharge nozzle — top */}
-          <rect x="45" y="2" width="10" height="10" fill="#ea580c"/>
-          <rect x="42" y="9" width="16" height="3" rx="1" fill="#c2410c"/>
-          {/* Suction nozzle — bottom */}
-          <rect x="45" y="44" width="10" height="10" fill="#ea580c"/>
-          <rect x="42" y="44" width="16" height="3" rx="1" fill="#c2410c"/>
-        </svg>
-
-        <div className="absolute -top-6 text-[10px] font-bold text-orange-900 bg-white/80 px-1 rounded border border-orange-200 shadow-sm whitespace-nowrap">
-          {data.label as React.ReactNode}
-        </div>
       </div>
     </TooltipWrapper>
   );
@@ -297,9 +261,11 @@ export const TurbineNode = memo(({ id, data, selected }: NodeProps) => {
   return (
     <TooltipWrapper content={<DataList data={displayData} title="Turbine Properties" />}>
       <div className={clsx(
-        "w-[72px] h-[64px] transition-all group relative flex items-center justify-center",
+        "w-8 h-8 rounded-full border-2 shadow-sm flex items-center justify-center transition-all relative group bg-white",
+        hasOrderError ? "border-red-500 ring-2 ring-red-500/30" : selected ? "border-teal-600 ring-2 ring-teal-600/20" : "border-teal-500"
       )}>
-        <ErrorRing show={hasOrderError} />
+        <span className="text-[8px] font-bold text-teal-600 leading-none">{data.label as React.ReactNode}</span>
+
         <Handle type="target" id="t-top" position={Position.Top} className={clsx(HandleStyle, "!bg-teal-500")} />
         <Handle type="source" id="s-top" position={Position.Top} className={clsx(HandleStyle, "!bg-teal-500")} />
         <Handle type="target" id="t-bottom" position={Position.Bottom} className={clsx(HandleStyle, "!bg-teal-500")} />
@@ -308,42 +274,6 @@ export const TurbineNode = memo(({ id, data, selected }: NodeProps) => {
         <Handle type="source" id="s-left" position={Position.Left} className={clsx(HandleStyle, "!bg-teal-500")} />
         <Handle type="target" id="t-right" position={Position.Right} className={clsx(HandleStyle, "!bg-teal-500")} />
         <Handle type="source" id="s-right" position={Position.Right} className={clsx(HandleStyle, "!bg-teal-500")} />
-
-        {/* Francis Turbine Engineering Icon */}
-        <svg
-          width="72" height="64" viewBox="0 0 72 64" fill="none"
-          className={clsx("transition-all", selected ? "drop-shadow-[0_0_10px_rgba(20,184,166,0.9)]" : "")}
-        >
-          {/* Spiral casing / volute (outer ellipse) */}
-          <ellipse cx="36" cy="38" rx="28" ry="22" fill="#2dd4bf" stroke="#0d9488" strokeWidth="1.5"/>
-          {/* Spiral scroll cutaway — darker arc to suggest volute spiral */}
-          <path d="M36 16 A22 22 0 1 1 14 38" stroke="#0d9488" strokeWidth="3" fill="none"/>
-          {/* Penstock inlet nozzle — top */}
-          <rect x="30" y="2" width="12" height="16" rx="2" fill="#0d9488"/>
-          <rect x="28" y="14" width="16" height="4" rx="1" fill="#0f766e"/>
-          {/* Draft tube outlet — bottom */}
-          <rect x="28" y="58" width="16" height="4" rx="1" fill="#0f766e"/>
-          {/* Runner (inner wheel) */}
-          <circle cx="36" cy="38" r="14" fill="#14b8a6" stroke="#0d9488" strokeWidth="1.5"/>
-          {/* Runner blades (6 curved blades) */}
-          {[0,60,120,180,240,300].map((deg, i) => {
-            const rad = (deg * Math.PI) / 180;
-            const x1 = 36 + 5 * Math.cos(rad);
-            const y1 = 38 + 5 * Math.sin(rad);
-            const x2 = 36 + 12 * Math.cos(rad + 0.5);
-            const y2 = 38 + 12 * Math.sin(rad + 0.5);
-            return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#0f766e" strokeWidth="2.5" strokeLinecap="round"/>;
-          })}
-          {/* Runner hub */}
-          <circle cx="36" cy="38" r="4.5" fill="#0d9488"/>
-          <circle cx="36" cy="38" r="2" fill="#0f766e"/>
-          {/* Generator shaft above casing */}
-          <rect x="32" y="2" width="8" height="6" rx="1" fill="#0d9488"/>
-        </svg>
-
-        <div className="absolute -top-6 text-[10px] font-bold text-teal-900 bg-white/80 px-1 rounded border border-teal-200 shadow-sm whitespace-nowrap">
-          {data.label as React.ReactNode}
-        </div>
       </div>
     </TooltipWrapper>
   );
