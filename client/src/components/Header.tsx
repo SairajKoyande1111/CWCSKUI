@@ -93,7 +93,7 @@ function TitleBarBtn({
   );
 }
 
-// ─── Inline ribbon button (icon + text side by side) ─────────────────────────
+// ─── Inline ribbon button (icon above, text below — stacked) ─────────────────
 function InlineRibbonBtn({
   imgSrc, icon, label, onClick, disabled, active,
   ...rest
@@ -112,16 +112,16 @@ function InlineRibbonBtn({
       disabled={disabled}
       {...rest}
       className={cn(
-        "flex flex-row items-center gap-2 px-3 py-2 rounded transition-colors select-none whitespace-nowrap",
+        "flex flex-col items-center justify-center gap-0.5 px-1.5 py-1 rounded transition-colors select-none min-w-[52px]",
         disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer hover:bg-blue-50 active:bg-blue-100",
         active ? "bg-blue-100 ring-1 ring-blue-300" : "",
       )}
     >
       {imgSrc
-        ? <img src={imgSrc} className="w-[22px] h-[22px] object-contain flex-shrink-0" alt={label} />
+        ? <img src={imgSrc} className="w-[20px] h-[20px] object-contain flex-shrink-0" alt={label} />
         : <span className="flex-shrink-0 flex items-center">{icon}</span>
       }
-      <span className="text-[12px] font-medium text-black" style={{ fontFamily: 'Poppins, sans-serif' }}>{label}</span>
+      <span className="text-[9px] font-medium text-black text-center leading-tight max-w-[56px]" style={{ fontFamily: 'Poppins, sans-serif' }}>{label}</span>
     </button>
   );
 }
@@ -501,7 +501,7 @@ export function Header({
       </div>
 
       {/* ── RIBBON ── */}
-      <div className="flex items-stretch bg-[#f3f5f9] border-b border-slate-200 w-full overflow-x-auto">
+      <div className="flex items-stretch bg-[#f3f5f9] border-b border-slate-200 w-full">
 
         <RibbonGroup label="Insert">
           <InlineRibbonBtn imgSrc={damIcon} label="Reservoir" onClick={() => addNode("reservoir", { x: 100, y: 100 })} />
@@ -533,20 +533,20 @@ export function Header({
         </RibbonGroup>
 
         <RibbonGroup label="Tools">
-          <InlineRibbonBtn icon={<Layout className="w-[22px] h-[22px]" />} label="Diagram" onClick={onShowDiagram} />
+          <InlineRibbonBtn icon={<Layout className="w-5 h-5" />} label="Diagram" onClick={onShowDiagram} />
           <InlineRibbonBtn
-            icon={<MousePointer2 className="w-[22px] h-[22px]" />}
+            icon={<MousePointer2 className="w-5 h-5" />}
             label="Node Sel."
             onClick={() => window.dispatchEvent(new CustomEvent('toggleNodeSelection'))}
           />
           <InlineRibbonBtn
-            icon={<Table2 className="w-[22px] h-[22px]" />}
+            icon={<Table2 className="w-5 h-5" />}
             label="Flex Table"
             onClick={() => setShowFlexTable(true)}
             data-testid="ribbon-btn-flextable"
           />
           <InlineRibbonBtn
-            icon={<BarChart2 className="w-[22px] h-[22px]" />}
+            icon={<BarChart2 className="w-5 h-5" />}
             label="Visualization"
             onClick={onVisualization}
             data-testid="ribbon-btn-visualization"
@@ -555,12 +555,12 @@ export function Header({
 
         <RibbonGroup label="Analysis">
           <InlineRibbonBtn
-            icon={<Settings2 className="w-[22px] h-[22px]" />}
+            icon={<Settings2 className="w-5 h-5" />}
             label="Comp. Params"
             onClick={() => setShowCompParams(true)}
           />
           <InlineRibbonBtn
-            icon={<ListVideo className="w-[22px] h-[22px]" />}
+            icon={<ListVideo className="w-5 h-5" />}
             label="Output Req."
             onClick={() => { setGenerateDialogMode(null); setShowOutputDialog(true); }}
           />
@@ -568,13 +568,13 @@ export function Header({
 
         <RibbonGroup label="Generate">
           <InlineRibbonBtn
-            icon={<Download className="w-[22px] h-[22px] text-blue-700" />}
+            icon={<Download className="w-5 h-5 text-blue-700" />}
             label="Generate .INP"
             onClick={handleExport}
             data-testid="ribbon-btn-generate-inp"
           />
           <InlineRibbonBtn
-            icon={<Download className="w-[22px] h-[22px] text-blue-700" />}
+            icon={<Download className="w-5 h-5 text-blue-700" />}
             label={isGeneratingOut ? "Processing..." : "Generate .OUT"}
             onClick={handleOutGenerate}
             disabled={isGeneratingOut}
@@ -584,12 +584,12 @@ export function Header({
 
         <RibbonGroup label="View">
           <InlineRibbonBtn
-            icon={<Layout className="w-[22px] h-[22px]" />}
+            icon={<Layout className="w-5 h-5" />}
             label="Grid"
             onClick={() => window.dispatchEvent(new CustomEvent('toggle-grid'))}
           />
           <InlineRibbonBtn
-            icon={<Maximize2 className="w-[22px] h-[22px]" />}
+            icon={<Maximize2 className="w-5 h-5" />}
             label={isFullscreen ? "Exit FS" : "Full Screen"}
             onClick={() => {
               if (!document.fullscreenElement) {
@@ -600,7 +600,7 @@ export function Header({
             }}
           />
           <InlineRibbonBtn
-            icon={showHoverData ? <Eye className="w-[22px] h-[22px]" /> : <EyeOff className="w-[22px] h-[22px]" />}
+            icon={showHoverData ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
             label={showHoverData ? "Hide Labels" : "Show Labels"}
             onClick={() => setShowHoverData(!showHoverData)}
             active={showHoverData}
@@ -609,9 +609,9 @@ export function Header({
         </RibbonGroup>
 
         <RibbonGroup label="Help">
-          <InlineRibbonBtn icon={<Info className="w-[22px] h-[22px]" />} label="Help" onClick={() => setShowHelp(true)} />
+          <InlineRibbonBtn icon={<Info className="w-5 h-5" />} label="Help" onClick={() => setShowHelp(true)} />
           <InlineRibbonBtn
-            icon={<Layout className="w-[22px] h-[22px]" />}
+            icon={<Layout className="w-5 h-5" />}
             label="Shortcuts"
             onClick={() => window.dispatchEvent(new CustomEvent('toggle-shortcut-console'))}
           />
