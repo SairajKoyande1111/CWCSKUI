@@ -262,18 +262,25 @@ function TcharEditor({ tType, activeTc, updateTcharData }: {
   );
 }
 
-function PropSection({ title, children, defaultOpen = true }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
+function PropSection({ title, children, defaultOpen = true, headerExtra }: { title: string; children: React.ReactNode; defaultOpen?: boolean; headerExtra?: React.ReactNode }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="border border-slate-200 rounded-md overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setOpen(v => !v)}
-        className="w-full flex items-center justify-between px-3 py-2 bg-[#e8edf5] hover:bg-[#dce3ef] transition-colors select-none"
-      >
-        <span className="text-[11px] font-semibold text-black uppercase tracking-wider" style={{ fontFamily: 'Poppins, sans-serif' }}>{title}</span>
-        {open ? <ChevronDown className="h-3.5 w-3.5 text-black" /> : <ChevronRight className="h-3.5 w-3.5 text-black" />}
-      </button>
+      <div className="w-full flex items-center justify-between px-3 py-2 bg-[#e8edf5] select-none">
+        <button
+          type="button"
+          onClick={() => setOpen(v => !v)}
+          className="flex items-center gap-1.5 flex-1 min-w-0 hover:opacity-80 transition-opacity text-left"
+        >
+          <span className="text-[11px] font-semibold text-black uppercase tracking-wider" style={{ fontFamily: 'Poppins, sans-serif' }}>{title}</span>
+          {open ? <ChevronDown className="h-3.5 w-3.5 text-black shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 text-black shrink-0" />}
+        </button>
+        {headerExtra && (
+          <div className="flex items-center gap-1 ml-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+            {headerExtra}
+          </div>
+        )}
+      </div>
       {open && <div className="bg-white">{children}</div>}
     </div>
   );
@@ -849,8 +856,104 @@ export function PropertiesPanel() {
               />
             </PropRow>
           </PropSection>
+        ) : (isNode && element.data?.type === 'flowBoundary') ? (
+          /* HAMMER-style General block for flow boundary */
+          <PropSection title="General">
+            <PropRow label="Label / ID">
+              <Input
+                id="label"
+                data-testid="input-label"
+                value={formData.label ?? ''}
+                onChange={(e) => handleChange('label', e.target.value)}
+                className="h-7 text-[12px] font-medium text-black border-slate-300"
+                style={{ fontFamily: 'Poppins, sans-serif' }}
+              />
+            </PropRow>
+            <PropRow label="Comment" noBorder>
+              <Input
+                id="comment"
+                placeholder="Internal comment (c/C style)"
+                value={formData.comment ?? ''}
+                onChange={(e) => handleChange('comment', e.target.value)}
+                className="h-7 text-[12px] font-medium text-black border-slate-300"
+                style={{ fontFamily: 'Poppins, sans-serif' }}
+              />
+            </PropRow>
+          </PropSection>
+        ) : (element.data?.type === 'pump') ? (
+          /* HAMMER-style General block for pump */
+          <PropSection title="General">
+            <PropRow label="Label / ID">
+              <Input
+                id="label"
+                data-testid="input-label"
+                value={formData.label ?? ''}
+                onChange={(e) => handleChange('label', e.target.value)}
+                className="h-7 text-[12px] font-medium text-black border-slate-300"
+                style={{ fontFamily: 'Poppins, sans-serif' }}
+              />
+            </PropRow>
+            <PropRow label="Comment" noBorder>
+              <Input
+                id="comment"
+                placeholder="Internal comment (c/C style)"
+                value={formData.comment ?? ''}
+                onChange={(e) => handleChange('comment', e.target.value)}
+                className="h-7 text-[12px] font-medium text-black border-slate-300"
+                style={{ fontFamily: 'Poppins, sans-serif' }}
+              />
+            </PropRow>
+          </PropSection>
+        ) : (element.data?.type === 'checkValve') ? (
+          /* HAMMER-style General block for check valve */
+          <PropSection title="General">
+            <PropRow label="Label / ID">
+              <Input
+                id="label"
+                data-testid="input-label"
+                value={formData.label ?? ''}
+                onChange={(e) => handleChange('label', e.target.value)}
+                className="h-7 text-[12px] font-medium text-black border-slate-300"
+                style={{ fontFamily: 'Poppins, sans-serif' }}
+              />
+            </PropRow>
+            <PropRow label="Comment" noBorder>
+              <Input
+                id="comment"
+                placeholder="Internal comment (c/C style)"
+                value={formData.comment ?? ''}
+                onChange={(e) => handleChange('comment', e.target.value)}
+                className="h-7 text-[12px] font-medium text-black border-slate-300"
+                style={{ fontFamily: 'Poppins, sans-serif' }}
+              />
+            </PropRow>
+          </PropSection>
+        ) : (element.data?.type === 'turbine') ? (
+          /* HAMMER-style General block for turbine */
+          <PropSection title="General">
+            <PropRow label="Label / ID">
+              <Input
+                id="label"
+                data-testid="input-label"
+                value={formData.label ?? ''}
+                onChange={(e) => handleChange('label', e.target.value)}
+                className="h-7 text-[12px] font-medium text-black border-slate-300"
+                style={{ fontFamily: 'Poppins, sans-serif' }}
+              />
+            </PropRow>
+            <PropRow label="Comment" noBorder>
+              <Input
+                id="comment"
+                placeholder="Internal comment (c/C style)"
+                value={formData.comment ?? ''}
+                onChange={(e) => handleChange('comment', e.target.value)}
+                className="h-7 text-[12px] font-medium text-black border-slate-300"
+                style={{ fontFamily: 'Poppins, sans-serif' }}
+              />
+            </PropRow>
+          </PropSection>
         ) : (
-          /* Legacy General block for pump, turbine, surge tank, flow boundary, etc. */
+          /* Legacy General block for any remaining types */
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-black" style={{ fontFamily: 'Poppins, sans-serif' }}>General</h4>
             <div className="grid gap-2">
@@ -884,6 +987,10 @@ export function PropertiesPanel() {
           !(!isNode && (element.data?.type === 'conduit' || element.data?.type === 'dummy' || !element.data?.type)) &&
           !(isNode && (element.data?.type === 'node' || element.data?.type === 'junction')) &&
           !(isNode && element.data?.type === 'surgeTank') &&
+          !(isNode && element.data?.type === 'flowBoundary') &&
+          element.data?.type !== 'pump' &&
+          element.data?.type !== 'checkValve' &&
+          element.data?.type !== 'turbine' &&
           <Separator />}
 
         {/* Specific Properties based on Type */}
@@ -892,6 +999,10 @@ export function PropertiesPanel() {
             !(!isNode && (element.data?.type === 'conduit' || element.data?.type === 'dummy' || !element.data?.type)) &&
             !(isNode && (element.data?.type === 'node' || element.data?.type === 'junction')) &&
             !(isNode && element.data?.type === 'surgeTank') &&
+            !(isNode && element.data?.type === 'flowBoundary') &&
+            element.data?.type !== 'pump' &&
+            element.data?.type !== 'checkValve' &&
+            element.data?.type !== 'turbine' &&
             <h4 className="text-sm font-semibold text-black" style={{ fontFamily: 'Poppins, sans-serif' }}>Parameters</h4>}
 
           {isNode && (element.data?.type === 'node' || element.data?.type === 'junction' || element.data?.type === 'reservoir' || element.data?.type === 'surgeTank' || element.data?.type === 'flowBoundary' || formData.type_st) && (
@@ -944,7 +1055,7 @@ export function PropertiesPanel() {
               })()}
 
               {/* ── RESERVOIR: already has its own PropSections (no change) ── */}
-              {element.data?.type === 'reservoir' ? null : (element.data?.type !== 'node' && element.data?.type !== 'junction' && element.data?.type !== 'surgeTank') ? (
+              {element.data?.type === 'reservoir' ? null : (element.data?.type !== 'node' && element.data?.type !== 'junction' && element.data?.type !== 'surgeTank' && element.data?.type !== 'flowBoundary') ? (
               <div className="grid gap-1">
                 <Label htmlFor="nodeNum">Node Number</Label>
                 {(() => {
@@ -1170,8 +1281,8 @@ export function PropertiesPanel() {
                 );
               })()}
 
-              {/* Non-reservoir, non-node/junction, non-surgeTank: elevation */}
-              {element.data?.type !== 'reservoir' && element.data?.type !== 'node' && element.data?.type !== 'junction' && element.data?.type !== 'surgeTank' && (
+              {/* Non-reservoir, non-node/junction, non-surgeTank, non-flowBoundary: elevation */}
+              {element.data?.type !== 'reservoir' && element.data?.type !== 'node' && element.data?.type !== 'junction' && element.data?.type !== 'surgeTank' && element.data?.type !== 'flowBoundary' && (
               <div className="grid gap-2">
                 <Label htmlFor="elev">Elevation ({currentUnit === 'SI' ? 'm' : 'ft'})</Label>
                 <NumericInput 
@@ -1181,57 +1292,120 @@ export function PropertiesPanel() {
                 />
               </div>
               )}
+
+              {/* ── FLOW BOUNDARY: HAMMER-style PropSections ── */}
               {element.data?.type === 'flowBoundary' && (() => {
                 const activeSchedNum = Number(formData.scheduleNumber ?? element.data?.scheduleNumber ?? 1);
                 const activeQPoints: { time: number; flow: number | string }[] =
                   (qSchedules[activeSchedNum] as any[]) || [];
-
                 const sharedCount = nodes.filter(
                   n => n.type === 'flowBoundary' &&
                        n.id !== selectedElementId &&
                        Number(n.data?.scheduleNumber) === activeSchedNum
                 ).length;
-
+                const parsedNum = parseInt(nodeNumInput, 10);
+                const isDuplicate = !isNaN(parsedNum) && nodes.some(
+                  n => n.id !== selectedElementId && n.data?.nodeNumber === parsedNum
+                );
                 return (
                   <>
-                    <div className="grid gap-2">
-                      <Label htmlFor="scheduleNum">Schedule Number</Label>
-                      <NumericInput 
-                        id="scheduleNum" 
-                        value={formData.scheduleNumber} 
-                        onValueChange={(v) => handleChange('scheduleNumber', v)} 
-                      />
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
+                    {/* Identification */}
+                    <PropSection title="Identification">
+                      <PropRow label="Node Number">
                         <div>
-                          <Label className="text-sm font-medium">Queue Schedule Points</Label>
-                          {sharedCount > 0 && (
-                            <p className="text-[10px] text-blue-600 mt-0.5">
-                              Shared with {sharedCount} other Flow BC{sharedCount !== 1 ? 's' : ''} — edits sync instantly
+                          <Input
+                            id="nodeNum"
+                            data-testid="input-node-number"
+                            type="text"
+                            inputMode="numeric"
+                            value={nodeNumInput}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              if (v === '' || /^\d+$/.test(v)) setNodeNumInput(v);
+                            }}
+                            onBlur={handleNodeNumberBlur}
+                            className={`h-7 text-[12px] font-medium text-black border-slate-300 ${isDuplicate ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                            style={{ fontFamily: 'Poppins, sans-serif' }}
+                          />
+                          {isDuplicate && (
+                            <p className="text-[10px] text-red-600 mt-1 flex items-center gap-1" data-testid="error-node-number-duplicate">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M18 10A8 8 0 11 2 10a8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                              </svg>
+                              Node {parsedNum} already exists
                             </p>
                           )}
                         </div>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="h-7 px-2"
-                          onClick={() => {
-                            updateQSchedule(activeSchedNum, [...activeQPoints, { time: 0, flow: 0 }]);
-                          }}
-                        >
-                          Add Point
-                        </Button>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        {activeQPoints.map((point, index) => (
-                          <div key={index} className="flex items-end gap-2 p-2 border rounded-md bg-muted/30 relative group">
-                            <div className="grid gap-1 flex-1">
-                              <Label className="text-[10px]">Time (T)</Label>
-                              <NumericInput 
-                                className="h-7 text-xs"
+                      </PropRow>
+                      <PropRow label={`Node Elevation (${currentUnit === 'SI' ? 'm' : 'ft'})`} noBorder>
+                        <NumericInput
+                          id="elev"
+                          value={formData.elevation}
+                          onValueChange={(v) => handleChange('elevation', v)}
+                          className="h-7 text-[12px] font-medium text-black border-slate-300"
+                          style={{ fontFamily: 'Poppins, sans-serif' } as any}
+                        />
+                      </PropRow>
+                    </PropSection>
+
+                    {/* Flow Schedule */}
+                    <PropSection title="Flow Schedule">
+                      <PropRow label="Schedule Number" noBorder>
+                        <NumericInput
+                          id="scheduleNum"
+                          data-testid="input-schedule-number"
+                          value={formData.scheduleNumber}
+                          onValueChange={(v) => handleChange('scheduleNumber', v)}
+                          className="h-7 text-[12px] font-medium text-black border-slate-300"
+                          style={{ fontFamily: 'Poppins, sans-serif' } as any}
+                        />
+                      </PropRow>
+                    </PropSection>
+
+                    {/* Q Schedule Points */}
+                    <PropSection title="Q Schedule Points">
+                      <div className="px-3 py-2 space-y-2">
+                        {/* Header row with shared-sync hint and Add Point button */}
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-[11px] font-semibold text-[#3a4a6b]" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                              Schedule {activeSchedNum}
+                            </p>
+                            {sharedCount > 0 && (
+                              <p className="text-[10px] text-blue-600 mt-0.5">
+                                Shared with {sharedCount} other Flow BC{sharedCount !== 1 ? 's' : ''} — edits sync instantly
+                              </p>
+                            )}
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2 text-[11px]"
+                            style={{ fontFamily: 'Poppins, sans-serif' }}
+                            onClick={() => {
+                              updateQSchedule(activeSchedNum, [...activeQPoints, { time: 0, flow: 0 }]);
+                            }}
+                          >
+                            Add Point
+                          </Button>
+                        </div>
+
+                        {/* Column headers */}
+                        {activeQPoints.length > 0 && (
+                          <div className="flex items-center gap-2 px-1">
+                            <span className="flex-1 text-[10px] font-semibold text-slate-500 uppercase tracking-wide">Time (T)</span>
+                            <span className="flex-1 text-[10px] font-semibold text-slate-500 uppercase tracking-wide">Flow (Q) ({currentUnit === 'SI' ? 'm³/s' : 'ft³/s'})</span>
+                            <span className="w-7" />
+                          </div>
+                        )}
+
+                        {/* Point rows */}
+                        <div className="space-y-1.5">
+                          {activeQPoints.map((point, index) => (
+                            <div key={index} className="flex items-center gap-2 p-2 border border-slate-200 rounded-md bg-white relative group">
+                              <NumericInput
+                                className="flex-1 h-7 text-[12px] font-medium text-black border-slate-300"
+                                style={{ fontFamily: 'Poppins, sans-serif' } as any}
                                 value={point.time}
                                 onValueChange={(v) => {
                                   const newPoints = [...activeQPoints];
@@ -1239,11 +1413,9 @@ export function PropertiesPanel() {
                                   updateQSchedule(activeSchedNum, newPoints);
                                 }}
                               />
-                            </div>
-                            <div className="grid gap-1 flex-1">
-                              <Label className="text-[10px]">Flow (Q) ({currentUnit === 'SI' ? 'm³/s' : 'ft³/s'})</Label>
-                              <NumericInput 
-                                className="h-7 text-xs"
+                              <NumericInput
+                                className="flex-1 h-7 text-[12px] font-medium text-black border-slate-300"
+                                style={{ fontFamily: 'Poppins, sans-serif' } as any}
                                 value={point.flow}
                                 onValueChange={(v) => {
                                   const newPoints = [...activeQPoints];
@@ -1251,25 +1423,27 @@ export function PropertiesPanel() {
                                   updateQSchedule(activeSchedNum, newPoints);
                                 }}
                               />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => {
+                                  const newPoints = activeQPoints.filter((_, i) => i !== index);
+                                  updateQSchedule(activeSchedNum, newPoints);
+                                }}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={() => {
-                                const newPoints = activeQPoints.filter((_, i) => i !== index);
-                                updateQSchedule(activeSchedNum, newPoints);
-                              }}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        ))}
-                        {activeQPoints.length === 0 && (
-                          <p className="text-[10px] text-muted-foreground text-center py-2 italic">No schedule points added.</p>
-                        )}
+                          ))}
+                          {activeQPoints.length === 0 && (
+                            <p className="text-[10px] text-muted-foreground text-center py-3 italic">
+                              No schedule points added. Click &quot;Add Point&quot; to begin.
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    </PropSection>
                   </>
                 );
               })()}
@@ -1289,124 +1463,140 @@ export function PropertiesPanel() {
 
             return (
               <>
-                <div className="grid gap-2">
-                  <Label htmlFor="pumpStatus">Pump Status</Label>
-                  <Select
-                    value={formData.pumpStatus || 'ACTIVE'}
-                    onValueChange={(v) => handleChange('pumpStatus', v)}
-                  >
-                    <SelectTrigger id="pumpStatus" data-testid="select-pumpstatus">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ACTIVE">ACTIVE</SelectItem>
-                      <SelectItem value="INACTIVE">INACTIVE</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="pumpType">Pump Type (PCHAR TYPE)</Label>
-                  <div className="flex gap-1 items-center">
+                {/* ── PUMP: Configuration ── */}
+                <PropSection title="Configuration">
+                  {/* Pump Status */}
+                  <PropRow label="Pump Status">
                     <Select
-                      value={String(formData.pumpType ?? 1)}
-                      onValueChange={(v) => handleChange('pumpType', v)}
+                      value={formData.pumpStatus || 'ACTIVE'}
+                      onValueChange={(v) => handleChange('pumpStatus', v)}
                     >
-                      <SelectTrigger id="pumpType" data-testid="select-pumptype" className="flex-1">
-                        <SelectValue placeholder="Type" />
+                      <SelectTrigger id="pumpStatus" data-testid="select-pumpstatus" className="h-7 text-[12px] font-medium text-black border-slate-300" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                        <SelectValue placeholder="Status" />
                       </SelectTrigger>
                       <SelectContent>
-                        {Object.keys(pcharData).map(Number).sort((a, b) => a - b).map(t => (
-                          <SelectItem key={t} value={String(t)}>TYPE {t}</SelectItem>
-                        ))}
-                        <div
-                          className="flex gap-1 items-center px-2 py-1.5 border-t mt-1"
-                          onPointerDown={(e) => e.stopPropagation()}
-                          onKeyDown={(e) => e.stopPropagation()}
-                        >
-                          <input
-                            type="text" inputMode="decimal"
-                            min="1"
-                            className="flex h-7 w-full rounded border border-input bg-transparent px-2 py-0.5 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                            placeholder="Type no. (blank = auto)"
-                            value={newTypeNum}
-                            onChange={(e) => setNewTypeNum(e.target.value)}
-                            data-testid="input-new-pchar-type"
-                          />
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-7 w-7 shrink-0"
-                            title="Add new PCHAR type"
-                            onPointerDown={(e) => e.stopPropagation()}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const parsed = newTypeNum.trim() !== "" ? parseInt(newTypeNum) : undefined;
-                              const existingNums = Object.keys(pcharData).map(Number);
-                              const nextNum = parsed !== undefined && !isNaN(parsed)
-                                ? parsed
-                                : (existingNums.length > 0 ? Math.max(...existingNums) + 1 : 1);
-                              if (pcharData[nextNum] !== undefined) return;
-                              addPcharType(nextNum);
-                              handleChange('pumpType', String(nextNum));
-                              setNewTypeNum("");
-                            }}
-                            data-testid="button-add-pchar-type"
-                          >
-                            <Plus className="w-3.5 h-3.5" />
-                          </Button>
-                        </div>
+                        <SelectItem value="ACTIVE">ACTIVE</SelectItem>
+                        <SelectItem value="INACTIVE">INACTIVE</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-9 w-9 shrink-0 text-destructive hover:text-destructive"
-                      title="Delete this PCHAR type"
-                      disabled={Object.keys(pcharData).length <= 1}
-                      onClick={() => {
-                        const currentType = Number(formData.pumpType ?? 1);
-                        deletePcharType(currentType);
-                        const remaining = Object.keys(pcharData).map(Number).filter(t => t !== currentType).sort((a, b) => a - b);
-                        if (remaining.length > 0) handleChange('pumpType', String(remaining[0]));
-                      }}
-                      data-testid="button-delete-pchar-type"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="grid gap-1">
-                    <Label htmlFor="rq" className="text-xs">Rated Flow RQ ({currentUnit === 'SI' ? 'm³/s' : 'ft³/s'})</Label>
+                  </PropRow>
+
+                  {/* Pump Type (PCHAR) */}
+                  <PropRow label="PCHAR Type" noBorder>
+                    <div className="flex gap-1 items-center w-full">
+                      <Select
+                        value={String(formData.pumpType ?? 1)}
+                        onValueChange={(v) => handleChange('pumpType', v)}
+                      >
+                        <SelectTrigger id="pumpType" data-testid="select-pumptype" className="h-7 text-[12px] font-medium text-black border-slate-300 flex-1" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                          <SelectValue placeholder="Type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.keys(pcharData).map(Number).sort((a, b) => a - b).map(t => (
+                            <SelectItem key={t} value={String(t)}>TYPE {t}</SelectItem>
+                          ))}
+                          <div
+                            className="flex gap-1 items-center px-2 py-1.5 border-t mt-1"
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onKeyDown={(e) => e.stopPropagation()}
+                          >
+                            <input
+                              type="text" inputMode="decimal"
+                              min="1"
+                              className="flex h-7 w-full rounded border border-input bg-transparent px-2 py-0.5 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                              placeholder="Type no. (blank = auto)"
+                              value={newTypeNum}
+                              onChange={(e) => setNewTypeNum(e.target.value)}
+                              data-testid="input-new-pchar-type"
+                            />
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-7 w-7 shrink-0"
+                              title="Add new PCHAR type"
+                              onPointerDown={(e) => e.stopPropagation()}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const parsed = newTypeNum.trim() !== "" ? parseInt(newTypeNum) : undefined;
+                                const existingNums = Object.keys(pcharData).map(Number);
+                                const nextNum = parsed !== undefined && !isNaN(parsed)
+                                  ? parsed
+                                  : (existingNums.length > 0 ? Math.max(...existingNums) + 1 : 1);
+                                if (pcharData[nextNum] !== undefined) return;
+                                addPcharType(nextNum);
+                                handleChange('pumpType', String(nextNum));
+                                setNewTypeNum("");
+                              }}
+                              data-testid="button-add-pchar-type"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 shrink-0 text-destructive hover:text-destructive"
+                        title="Delete this PCHAR type"
+                        disabled={Object.keys(pcharData).length <= 1}
+                        onClick={() => {
+                          const currentType = Number(formData.pumpType ?? 1);
+                          deletePcharType(currentType);
+                          const remaining = Object.keys(pcharData).map(Number).filter(t => t !== currentType).sort((a, b) => a - b);
+                          if (remaining.length > 0) handleChange('pumpType', String(remaining[0]));
+                        }}
+                        data-testid="button-delete-pchar-type"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </PropRow>
+                </PropSection>
+
+                {/* ── PUMP: Rated Parameters ── */}
+                <PropSection title="Rated Parameters">
+                  <PropRow label={`Rated Flow RQ (${currentUnit === 'SI' ? 'm³/s' : 'ft³/s'})`}>
                     <NumericInput id="rq" data-testid="input-rq"
                       value={formData.rq}
-                      onValueChange={(v) => handleChange('rq', v)} className="h-7 text-xs" />
-                  </div>
-                  <div className="grid gap-1">
-                    <Label htmlFor="rhead" className="text-xs">Rated Head RHEAD ({currentUnit === 'SI' ? 'm' : 'ft'})</Label>
+                      onValueChange={(v) => handleChange('rq', v)}
+                      className="h-7 text-[12px] font-medium text-black border-slate-300"
+                      style={{ fontFamily: 'Poppins, sans-serif' } as any}
+                    />
+                  </PropRow>
+                  <PropRow label={`Rated Head RHEAD (${currentUnit === 'SI' ? 'm' : 'ft'})`}>
                     <NumericInput id="rhead" data-testid="input-rhead"
                       value={formData.rhead}
-                      onValueChange={(v) => handleChange('rhead', v)} className="h-7 text-xs" />
-                  </div>
-                  <div className="grid gap-1">
-                    <Label htmlFor="rspeed" className="text-xs">Rated Speed RSPEED (RPM)</Label>
+                      onValueChange={(v) => handleChange('rhead', v)}
+                      className="h-7 text-[12px] font-medium text-black border-slate-300"
+                      style={{ fontFamily: 'Poppins, sans-serif' } as any}
+                    />
+                  </PropRow>
+                  <PropRow label="Rated Speed RSPEED (RPM)">
                     <NumericInput id="rspeed" data-testid="input-rspeed"
                       value={formData.rspeed}
-                      onValueChange={(v) => handleChange('rspeed', v)} className="h-7 text-xs" />
-                  </div>
-                  <div className="grid gap-1">
-                    <Label htmlFor="rtorque" className="text-xs">Rated Torque RTOROUE</Label>
+                      onValueChange={(v) => handleChange('rspeed', v)}
+                      className="h-7 text-[12px] font-medium text-black border-slate-300"
+                      style={{ fontFamily: 'Poppins, sans-serif' } as any}
+                    />
+                  </PropRow>
+                  <PropRow label="Rated Torque RTORQUE">
                     <NumericInput id="rtorque" data-testid="input-rtorque"
                       value={formData.rtorque}
-                      onValueChange={(v) => handleChange('rtorque', v)} className="h-7 text-xs" />
-                  </div>
-                  <div className="grid gap-1 col-span-2">
-                    <Label htmlFor="wr2" className="text-xs">WR² (Moment of Inertia)</Label>
+                      onValueChange={(v) => handleChange('rtorque', v)}
+                      className="h-7 text-[12px] font-medium text-black border-slate-300"
+                      style={{ fontFamily: 'Poppins, sans-serif' } as any}
+                    />
+                  </PropRow>
+                  <PropRow label="WR² — Moment of Inertia" noBorder>
                     <NumericInput id="wr2" data-testid="input-wr2"
                       value={formData.wr2}
-                      onValueChange={(v) => handleChange('wr2', v)} className="h-7 text-xs" />
-                  </div>
-                </div>
+                      onValueChange={(v) => handleChange('wr2', v)}
+                      className="h-7 text-[12px] font-medium text-black border-slate-300"
+                      style={{ fontFamily: 'Poppins, sans-serif' } as any}
+                    />
+                  </PropRow>
+                </PropSection>
 
                 <PcharEditor pType={pType} activePc={activePc} updatePcharData={updatePcharData} />
                 <PumpCurvePanel pType={pType} activePc={activePc} updatePcharData={updatePcharData} />
@@ -1422,154 +1612,197 @@ export function PropertiesPanel() {
             const opMode = (formData.operationMode as string) || 'TURBINE';
             return (
               <>
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm font-semibold text-teal-800">Turbine Properties</Label>
-                  <div className="flex gap-1">
-                    <Button variant="outline" size="sm" className="h-6 text-[10px] px-1.5"
-                      onClick={() => {
-                        const nums = Object.keys(tcharData).map(Number);
-                        const next = nums.length > 0 ? Math.max(...nums) + 1 : 1;
-                        addTcharType(next);
-                      }}>+ TCHAR</Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-6 text-[10px] px-1.5 text-destructive border-destructive/40 hover:bg-destructive/10"
-                      disabled={tcharTypeOptions.length <= 1}
-                      onClick={() => {
-                        const nums = Object.keys(tcharData).map(Number).sort((a, b) => a - b);
-                        if (nums.length <= 1) return;
-                        deleteTcharType(tType);
-                        const remaining = nums.filter(n => n !== tType);
-                        if (remaining.length > 0) {
-                          handleLocalChange('turbineType', remaining[0]);
-                        }
-                      }}
+                {/* ── TURBINE: TCHAR Configuration ── */}
+                <PropSection
+                  title="TCHAR Configuration"
+                  headerExtra={
+                    <div className="flex gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-5 text-[10px] px-1.5"
+                        onClick={() => {
+                          const nums = Object.keys(tcharData).map(Number);
+                          const next = nums.length > 0 ? Math.max(...nums) + 1 : 1;
+                          addTcharType(next);
+                        }}
+                      >
+                        + TCHAR
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-5 text-[10px] px-1.5 text-destructive border-destructive/40 hover:bg-destructive/10"
+                        disabled={tcharTypeOptions.length <= 1}
+                        onClick={() => {
+                          const nums = Object.keys(tcharData).map(Number).sort((a, b) => a - b);
+                          if (nums.length <= 1) return;
+                          deleteTcharType(tType);
+                          const remaining = nums.filter(n => n !== tType);
+                          if (remaining.length > 0) handleLocalChange('turbineType', remaining[0]);
+                        }}
+                      >
+                        <Trash2 className="h-3 w-3 mr-0.5" /> Del
+                      </Button>
+                    </div>
+                  }
+                >
+                  <PropRow label="TCHAR Type" noBorder>
+                    <Select
+                      value={String(tType)}
+                      onValueChange={v => handleLocalChange('turbineType', Number(v))}
                     >
-                      <Trash2 className="h-3 w-3 mr-0.5" /> Del
-                    </Button>
-                  </div>
-                </div>
+                      <SelectTrigger id="turbineType" className="h-7 text-[12px] font-medium text-black border-slate-300" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(tcharTypeOptions.length > 0 ? tcharTypeOptions : [{ label: 'TYPE 1', value: '1' }]).map(opt => (
+                          <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </PropRow>
+                </PropSection>
 
-                <div className="grid gap-2">
-                  <Label htmlFor="turbineType" className="text-xs">TCHAR Type</Label>
-                  <Select
-                    value={String(tType)}
-                    onValueChange={v => handleLocalChange('turbineType', Number(v))}
-                  >
-                    <SelectTrigger id="turbineType" className="h-7 text-xs">
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(tcharTypeOptions.length > 0 ? tcharTypeOptions : [{ label: 'TYPE 1', value: '1' }]).map(opt => (
-                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="grid gap-1">
-                    <Label htmlFor="syncSpeed" className="text-xs">Sync Speed SYNCSPD (RPM)</Label>
+                {/* ── TURBINE: Parameters ── */}
+                <PropSection title="Parameters">
+                  <PropRow label="Sync Speed SYNCSPD (RPM)">
                     <NumericInput id="syncSpeed" data-testid="input-syncspeed"
                       value={formData.syncSpeed}
-                      onValueChange={v => handleLocalChange('syncSpeed', v)} className="h-7 text-xs" />
-                  </div>
-                  <div className="grid gap-1">
-                    <Label htmlFor="turb-wr2" className="text-xs">WR² (Inertia)</Label>
+                      onValueChange={v => handleLocalChange('syncSpeed', v)}
+                      className="h-7 text-[12px] font-medium text-black border-slate-300"
+                      style={{ fontFamily: 'Poppins, sans-serif' } as any}
+                    />
+                  </PropRow>
+                  <PropRow label="WR² — Moment of Inertia">
                     <NumericInput id="turb-wr2" data-testid="input-turb-wr2"
                       value={formData.wr2}
-                      onValueChange={v => handleLocalChange('wr2', v)} className="h-7 text-xs" />
-                  </div>
-                  <div className="grid gap-1">
-                    <Label htmlFor="turbineDiameter" className="text-xs">Diameter ({currentUnit === 'SI' ? 'm' : 'ft'})</Label>
+                      onValueChange={v => handleLocalChange('wr2', v)}
+                      className="h-7 text-[12px] font-medium text-black border-slate-300"
+                      style={{ fontFamily: 'Poppins, sans-serif' } as any}
+                    />
+                  </PropRow>
+                  <PropRow label={`Diameter (${currentUnit === 'SI' ? 'm' : 'ft'})`}>
                     <NumericInput id="turbineDiameter" data-testid="input-turbine-diameter"
                       value={formData.turbineDiameter}
-                      onValueChange={v => handleLocalChange('turbineDiameter', v)} className="h-7 text-xs" />
-                  </div>
-                  <div className="grid gap-1">
-                    <Label htmlFor="turbFriction" className="text-xs">Friction</Label>
+                      onValueChange={v => handleLocalChange('turbineDiameter', v)}
+                      className="h-7 text-[12px] font-medium text-black border-slate-300"
+                      style={{ fontFamily: 'Poppins, sans-serif' } as any}
+                    />
+                  </PropRow>
+                  <PropRow label="Friction">
                     <NumericInput id="turbFriction" data-testid="input-turbfriction"
                       value={formData.turbFriction}
-                      onValueChange={v => handleLocalChange('turbFriction', v)} className="h-7 text-xs" />
-                  </div>
-                  <div className="grid gap-1">
-                    <Label htmlFor="windage" className="text-xs">Windage</Label>
+                      onValueChange={v => handleLocalChange('turbFriction', v)}
+                      className="h-7 text-[12px] font-medium text-black border-slate-300"
+                      style={{ fontFamily: 'Poppins, sans-serif' } as any}
+                    />
+                  </PropRow>
+                  <PropRow label="Windage" noBorder>
                     <NumericInput id="windage" data-testid="input-windage"
                       value={formData.windage}
-                      onValueChange={v => handleLocalChange('windage', v)} className="h-7 text-xs" />
-                  </div>
-                </div>
+                      onValueChange={v => handleLocalChange('windage', v)}
+                      className="h-7 text-[12px] font-medium text-black border-slate-300"
+                      style={{ fontFamily: 'Poppins, sans-serif' } as any}
+                    />
+                  </PropRow>
+                </PropSection>
 
-                <div className="grid gap-2">
-                  <Label htmlFor="operationMode" className="text-xs">Operation Mode (OPTURB)</Label>
-                  <Select value={opMode} onValueChange={v => handleLocalChange('operationMode', v)}>
-                    <SelectTrigger id="operationMode" className="h-7 text-xs">
-                      <SelectValue placeholder="Mode" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="TURBINE">TURBINE</SelectItem>
-                      <SelectItem value="GENERATE">GENERATE</SelectItem>
-                      <SelectItem value="TURBGOV">TURBGOV</SelectItem>
-                      <SelectItem value="EMERGENCY">EMERGENCY</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {/* ── TURBINE: Operation Mode ── */}
+                <PropSection title="Operation Mode">
+                  <PropRow label="Mode (OPTURB)" noBorder>
+                    <Select value={opMode} onValueChange={v => handleLocalChange('operationMode', v)}>
+                      <SelectTrigger id="operationMode" className="h-7 text-[12px] font-medium text-black border-slate-300" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                        <SelectValue placeholder="Mode" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="TURBINE">TURBINE</SelectItem>
+                        <SelectItem value="GENERATE">GENERATE</SelectItem>
+                        <SelectItem value="TURBGOV">TURBGOV</SelectItem>
+                        <SelectItem value="EMERGENCY">EMERGENCY</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </PropRow>
+                </PropSection>
 
+                {/* ── TURBINE: VSCHEDULE (only for GENERATE / TURBGOV / EMERGENCY) ── */}
                 {(opMode === 'GENERATE' || opMode === 'TURBGOV' || opMode === 'EMERGENCY') && (
-                  <div className="grid gap-2">
-                    <Label htmlFor="vScheduleNumber" className="text-xs">VSCHEDULE Number</Label>
-                    <NumericInput id="vScheduleNumber" data-testid="input-vschednum"
-                      value={formData.vScheduleNumber}
-                      onValueChange={v => handleLocalChange('vScheduleNumber', v)} className="h-7 text-xs" />
-                  </div>
-                )}
-
-                {(opMode === 'GENERATE' || opMode === 'TURBGOV' || opMode === 'EMERGENCY') && (() => {
-                  const schedNum = Number(formData.vScheduleNumber ?? 1);
-                  const pts: { t: number; g: number }[] = vSchedules[schedNum] || [];
-                  return (
-                    <div className="border rounded-md overflow-hidden">
-                      <div className="px-3 py-2 text-xs font-semibold bg-teal-50 text-teal-800 flex items-center justify-between">
-                        <span>VSCHEDULE {schedNum} (T/G pairs)</span>
-                        <Button variant="outline" size="sm" className="h-5 text-[10px] px-1"
-                          onClick={() => {
-                            if (!vSchedules[schedNum]) addVSchedule(schedNum);
-                            updateVSchedule(schedNum, [...pts, { t: 0, g: 1.0 }]);
-                          }}>+ Pair</Button>
-                      </div>
-                      <div className="p-2 space-y-1 bg-white">
-                        {pts.length === 0 && (
-                          <p className="text-[10px] text-muted-foreground italic text-center py-1">No T/G pairs. Add one above.</p>
-                        )}
-                        {pts.map((pt, idx) => (
-                          <div key={idx} className="flex items-center gap-2 group">
-                            <Label className="text-[10px] w-4">T</Label>
-                            <VScheduleInput
-                              value={pt.t}
-                              onChange={v => {
-                                const np = [...pts];
-                                np[idx] = { ...np[idx], t: v };
-                                updateVSchedule(schedNum, np);
-                              }} />
-                            <Label className="text-[10px] w-4">G</Label>
-                            <VScheduleInput
-                              value={pt.g}
-                              onChange={v => {
-                                const np = [...pts];
-                                np[idx] = { ...np[idx], g: v };
-                                updateVSchedule(schedNum, np);
-                              }} />
-                            <button className="text-destructive hover:text-red-700"
-                              onClick={() => updateVSchedule(schedNum, pts.filter((_, i) => i !== idx))}>
-                              <Trash2 className="h-3 w-3" />
-                            </button>
+                  <PropSection title="VSCHEDULE">
+                    <PropRow label="Schedule Number">
+                      <NumericInput id="vScheduleNumber" data-testid="input-vschednum"
+                        value={formData.vScheduleNumber}
+                        onValueChange={v => handleLocalChange('vScheduleNumber', v)}
+                        className="h-7 text-[12px] font-medium text-black border-slate-300"
+                        style={{ fontFamily: 'Poppins, sans-serif' } as any}
+                      />
+                    </PropRow>
+                    {(() => {
+                      const schedNum = Number(formData.vScheduleNumber ?? 1);
+                      const pts: { t: number; g: number }[] = vSchedules[schedNum] || [];
+                      return (
+                        <div className="px-0 pb-2">
+                          {/* Sub-header with T/G label and Add button */}
+                          <div className="flex items-center justify-between px-3 py-1.5 border-t border-slate-200 bg-[#f4f7fc]">
+                            <span className="text-[10px] font-semibold text-[#3a4a6b] uppercase tracking-wide" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                              VSCHEDULE {schedNum} — T / G pairs
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-5 text-[10px] px-1.5"
+                              style={{ fontFamily: 'Poppins, sans-serif' }}
+                              onClick={() => {
+                                if (!vSchedules[schedNum]) addVSchedule(schedNum);
+                                updateVSchedule(schedNum, [...pts, { t: 0, g: 1.0 }]);
+                              }}
+                            >
+                              + Pair
+                            </Button>
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })()}
+                          {/* Column headers */}
+                          {pts.length > 0 && (
+                            <div className="flex items-center gap-2 px-3 pt-1">
+                              <span className="flex-1 text-[10px] font-semibold text-slate-500 uppercase tracking-wide">Time (T)</span>
+                              <span className="flex-1 text-[10px] font-semibold text-slate-500 uppercase tracking-wide">Gate (G)</span>
+                              <span className="w-5" />
+                            </div>
+                          )}
+                          <div className="px-3 pt-1 space-y-1">
+                            {pts.length === 0 && (
+                              <p className="text-[10px] text-muted-foreground italic text-center py-2">No T/G pairs. Add one above.</p>
+                            )}
+                            {pts.map((pt, idx) => (
+                              <div key={idx} className="flex items-center gap-2 group p-1 rounded border border-slate-200 bg-white">
+                                <VScheduleInput
+                                  value={pt.t}
+                                  onChange={v => {
+                                    const np = [...pts];
+                                    np[idx] = { ...np[idx], t: v };
+                                    updateVSchedule(schedNum, np);
+                                  }}
+                                />
+                                <VScheduleInput
+                                  value={pt.g}
+                                  onChange={v => {
+                                    const np = [...pts];
+                                    np[idx] = { ...np[idx], g: v };
+                                    updateVSchedule(schedNum, np);
+                                  }}
+                                />
+                                <button
+                                  className="text-destructive hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={() => updateVSchedule(schedNum, pts.filter((_, i) => i !== idx))}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </PropSection>
+                )}
 
                 <TcharEditor tType={tType} activeTc={activeTc} updateTcharData={updateTcharData} />
 
@@ -1585,30 +1818,33 @@ export function PropertiesPanel() {
 
           {element.data?.type === 'checkValve' && (
             <>
-              <div className="grid gap-2">
-                <Label htmlFor="valveStatus">Valve Status</Label>
-                <Select
-                  value={formData.valveStatus || 'OPEN'}
-                  onValueChange={(v) => handleChange('valveStatus', v)}
-                >
-                  <SelectTrigger id="valveStatus">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="OPEN">OPEN</SelectItem>
-                    <SelectItem value="CLOSED">CLOSED</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="valveDiam">Diameter DIAM ({currentUnit === 'SI' ? 'm' : 'ft'})</Label>
-                <NumericInput
-                  id="valveDiam"
-                  data-testid="input-valvediam"
-                  value={formData.valveDiam}
-                  onValueChange={(v) => handleChange('valveDiam', v)}
-                />
-              </div>
+              {/* ── CHECK VALVE: Configuration ── */}
+              <PropSection title="Configuration">
+                <PropRow label="Valve Status">
+                  <Select
+                    value={formData.valveStatus || 'OPEN'}
+                    onValueChange={(v) => handleChange('valveStatus', v)}
+                  >
+                    <SelectTrigger id="valveStatus" className="h-7 text-[12px] font-medium text-black border-slate-300" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="OPEN">OPEN</SelectItem>
+                      <SelectItem value="CLOSED">CLOSED</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </PropRow>
+                <PropRow label={`Diameter DIAM (${currentUnit === 'SI' ? 'm' : 'ft'})`} noBorder>
+                  <NumericInput
+                    id="valveDiam"
+                    data-testid="input-valvediam"
+                    value={formData.valveDiam}
+                    onValueChange={(v) => handleChange('valveDiam', v)}
+                    className="h-7 text-[12px] font-medium text-black border-slate-300"
+                    style={{ fontFamily: 'Poppins, sans-serif' } as any}
+                  />
+                </PropRow>
+              </PropSection>
             </>
           )}
 
