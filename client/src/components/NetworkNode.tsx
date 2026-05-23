@@ -38,10 +38,10 @@ export const ReservoirNode = memo(({ id, data, selected }: NodeProps) => {
     <TooltipWrapper content={<DataList data={displayData} title="Reservoir Properties" />}>
       <div className="flex flex-col items-center">
         <div className={clsx(
-          "w-9 h-9 rounded-full border-2 shadow-sm flex items-center justify-center transition-all relative group bg-white",
+          "w-12 h-12 rounded-full border-2 shadow-sm flex items-center justify-center transition-all relative group bg-white",
           hasOrderError ? "border-red-500 ring-2 ring-red-500/30" : selected ? "border-blue-700 ring-2 ring-blue-700/20" : "border-blue-600"
         )}>
-          <img src={damIcon} className="w-5 h-5 object-contain pointer-events-none" alt="Reservoir" />
+          <img src={damIcon} className="w-7 h-7 object-contain pointer-events-none" alt="Reservoir" />
           <Handle type="target" id="t-top" position={Position.Top} className={HandleStyle} />
           <Handle type="source" id="s-top" position={Position.Top} className={HandleStyle} />
           <Handle type="target" id="t-bottom" position={Position.Bottom} className={HandleStyle} />
@@ -66,10 +66,10 @@ export const SimpleNode = memo(({ id, data, selected }: NodeProps) => {
   return (
     <TooltipWrapper content={<DataList data={displayData} title="Node Properties" />}>
       <div className={clsx(
-        "w-9 h-9 rounded-full border-2 shadow-sm flex items-center justify-center transition-all relative group bg-white",
+        "w-12 h-12 rounded-full border-2 shadow-sm flex items-center justify-center transition-all relative group bg-white",
         hasOrderError ? "border-red-500 ring-2 ring-red-500/30" : selected ? "border-blue-600 ring-2 ring-blue-600/20" : "border-blue-500"
       )}>
-        <span className="text-[12px] font-bold text-black">N{data.nodeNumber as React.ReactNode}</span>
+        <span className="text-[13px] font-bold text-black">N{data.nodeNumber as React.ReactNode}</span>
 
         <Handle type="target" id="t-top" position={Position.Top} className={HandleStyle} />
         <Handle type="source" id="s-top" position={Position.Top} className={HandleStyle} />
@@ -93,10 +93,10 @@ export const JunctionNode = memo(({ id, data, selected }: NodeProps) => {
   return (
     <TooltipWrapper content={<DataList data={displayData} title="Junction Properties" />}>
       <div className={clsx(
-        "w-9 h-9 rounded-full border-2 shadow-sm flex items-center justify-center transition-all relative group bg-white",
+        "w-12 h-12 rounded-full border-2 shadow-sm flex items-center justify-center transition-all relative group bg-white",
         hasOrderError ? "border-red-500 ring-4 ring-red-500/50" : selected ? "border-red-600 ring-2 ring-red-600/20" : "border-red-500"
       )}>
-        <span className="text-[12px] font-bold text-black">J{data.nodeNumber as React.ReactNode}</span>
+        <span className="text-[13px] font-bold text-black">J{data.nodeNumber as React.ReactNode}</span>
 
         <Handle type="target" id="t-top" position={Position.Top} className={clsx(HandleStyle, "!bg-red-500")} />
         <Handle type="source" id="s-top" position={Position.Top} className={clsx(HandleStyle, "!bg-red-500")} />
@@ -121,10 +121,10 @@ export const SurgeTankNode = memo(({ id, data, selected }: NodeProps) => {
     <TooltipWrapper content={<DataList data={displayData} title="Surge Tank Properties" />}>
       <div className="flex flex-col items-center">
         <div className={clsx(
-          "w-9 h-9 rounded-full border-2 shadow-sm flex items-center justify-center transition-all relative group bg-white",
+          "w-12 h-12 rounded-full border-2 shadow-sm flex items-center justify-center transition-all relative group bg-white",
           hasOrderError ? "border-red-500 ring-2 ring-red-500/30" : selected ? "border-orange-600 ring-2 ring-orange-600/20" : "border-orange-500"
         )}>
-          <img src={waterTankIcon} className="w-5 h-5 object-contain pointer-events-none" alt="Surge Tank" />
+          <img src={waterTankIcon} className="w-7 h-7 object-contain pointer-events-none" alt="Surge Tank" />
           <Handle type="target" id="t-top" position={Position.Top} className={clsx(HandleStyle, "!bg-orange-500")} />
           <Handle type="source" id="s-top" position={Position.Top} className={clsx(HandleStyle, "!bg-orange-500")} />
           <Handle type="target" id="t-bottom" position={Position.Bottom} className={clsx(HandleStyle, "!bg-orange-500")} />
@@ -150,10 +150,10 @@ export const PumpNode = memo(({ id, data, selected }: NodeProps) => {
     <TooltipWrapper content={<DataList data={displayData} title="Pump Properties" />}>
       <div className="flex flex-col items-center">
         <div className={clsx(
-          "w-9 h-9 rounded-full border-2 shadow-sm flex items-center justify-center transition-all relative group bg-white",
+          "w-12 h-12 rounded-full border-2 shadow-sm flex items-center justify-center transition-all relative group bg-white",
           hasOrderError ? "border-red-500 ring-2 ring-red-500/30" : selected ? "border-orange-600 ring-2 ring-orange-600/20" : "border-orange-500"
         )}>
-          <img src={waterPumpIcon} className="w-5 h-5 object-contain pointer-events-none" alt="Pump" />
+          <img src={waterPumpIcon} className="w-7 h-7 object-contain pointer-events-none" alt="Pump" />
           <Handle type="target" id="t-top" position={Position.Top} className={clsx(HandleStyle, "!bg-orange-500")} />
           <Handle type="source" id="s-top" position={Position.Top} className={clsx(HandleStyle, "!bg-orange-500")} />
           <Handle type="target" id="t-bottom" position={Position.Bottom} className={clsx(HandleStyle, "!bg-orange-500")} />
@@ -179,10 +179,10 @@ export const CheckValveNode = memo(({ id, data, selected }: NodeProps) => {
     <TooltipWrapper content={<DataList data={displayData} title="Check Valve Properties" />}>
       <div className="flex flex-col items-center">
         <div className={clsx(
-          "w-9 h-9 rounded-full border-2 shadow-sm flex items-center justify-center transition-all relative group bg-white",
+          "w-12 h-12 rounded-full border-2 shadow-sm flex items-center justify-center transition-all relative group bg-white",
           hasOrderError ? "border-red-500 ring-2 ring-red-500/30" : selected ? "border-violet-600 ring-2 ring-violet-600/20" : "border-violet-500"
         )}>
-          <img src={pipeIcon} className="w-5 h-5 object-contain pointer-events-none" alt="Check Valve" />
+          <img src={pipeIcon} className="w-7 h-7 object-contain pointer-events-none" alt="Check Valve" />
           <Handle type="target" id="t-top" position={Position.Top} className={clsx(HandleStyle, "!bg-violet-500")} />
           <Handle type="source" id="s-top" position={Position.Top} className={clsx(HandleStyle, "!bg-violet-500")} />
           <Handle type="target" id="t-bottom" position={Position.Bottom} className={clsx(HandleStyle, "!bg-violet-500")} />
@@ -208,10 +208,10 @@ export const TurbineNode = memo(({ id, data, selected }: NodeProps) => {
     <TooltipWrapper content={<DataList data={displayData} title="Turbine Properties" />}>
       <div className="flex flex-col items-center">
         <div className={clsx(
-          "w-9 h-9 rounded-full border-2 shadow-sm flex items-center justify-center transition-all relative group bg-white",
+          "w-12 h-12 rounded-full border-2 shadow-sm flex items-center justify-center transition-all relative group bg-white",
           hasOrderError ? "border-red-500 ring-2 ring-red-500/30" : selected ? "border-teal-600 ring-2 ring-teal-600/20" : "border-teal-500"
         )}>
-          <img src={turbineImgIcon} className="w-5 h-5 object-contain pointer-events-none" alt="Turbine" />
+          <img src={turbineImgIcon} className="w-7 h-7 object-contain pointer-events-none" alt="Turbine" />
           <Handle type="target" id="t-top" position={Position.Top} className={clsx(HandleStyle, "!bg-teal-500")} />
           <Handle type="source" id="s-top" position={Position.Top} className={clsx(HandleStyle, "!bg-teal-500")} />
           <Handle type="target" id="t-bottom" position={Position.Bottom} className={clsx(HandleStyle, "!bg-teal-500")} />

@@ -7,15 +7,18 @@ import {
 } from '@xyflow/react';
 import { TooltipWrapper, DataList } from './TooltipWrapper';
 import { useNetworkStore } from '@/lib/store';
+import waterPumpIcon from '@assets/water-pump_1779523451215.png';
+import pipeIcon from '@assets/pipe_1779523475650.png';
+import turbineImgIcon from '@assets/turbine_1779523517554.png';
 
 function PumpIcon({ color, label }: { color: string; label?: string }) {
   return (
     <div style={{
-      width: 36, height: 36, borderRadius: '50%',
+      width: 48, height: 48, borderRadius: '50%',
       border: `2px solid ${color}`, background: 'white',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
-      <span style={{ fontSize: 12, fontWeight: 700, color: '#000', lineHeight: 1 }}>{label}</span>
+      <img src={waterPumpIcon} style={{ width: 28, height: 28, objectFit: 'contain', pointerEvents: 'none' }} alt="Pump" />
     </div>
   );
 }
@@ -23,11 +26,11 @@ function PumpIcon({ color, label }: { color: string; label?: string }) {
 function CheckValveIcon({ color, label }: { color: string; label?: string }) {
   return (
     <div style={{
-      width: 36, height: 36, borderRadius: '50%',
+      width: 48, height: 48, borderRadius: '50%',
       border: `2px solid ${color}`, background: 'white',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
-      <span style={{ fontSize: 12, fontWeight: 700, color: '#000', lineHeight: 1 }}>{label}</span>
+      <img src={pipeIcon} style={{ width: 28, height: 28, objectFit: 'contain', pointerEvents: 'none' }} alt="Check Valve" />
     </div>
   );
 }
@@ -35,11 +38,11 @@ function CheckValveIcon({ color, label }: { color: string; label?: string }) {
 function TurbineIcon({ color, label }: { color: string; label?: string }) {
   return (
     <div style={{
-      width: 36, height: 36, borderRadius: '50%',
+      width: 48, height: 48, borderRadius: '50%',
       border: `2px solid ${color}`, background: 'white',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
-      <span style={{ fontSize: 12, fontWeight: 700, color: '#000', lineHeight: 1 }}>{label}</span>
+      <img src={turbineImgIcon} style={{ width: 28, height: 28, objectFit: 'contain', pointerEvents: 'none' }} alt="Turbine" />
     </div>
   );
 }
@@ -89,6 +92,8 @@ export const ConnectionEdge = memo(({
     : isDummy ? 'Dummy Pipe Properties'
     : 'Conduit Properties';
 
+  const edgeLabel = (displayData?.label as string) || id;
+
   return (
     <>
       <BaseEdge 
@@ -114,10 +119,11 @@ export const ConnectionEdge = memo(({
             content={<DataList data={displayData} title={tooltipTitle} />}
           >
             {isElementEdge ? (
-              <div className="flex flex-col items-center gap-0.5 cursor-help">
-                {isPump && <PumpIcon color={strokeColor} label={(displayData?.label as string) || id} />}
-                {isCheckValve && <CheckValveIcon color={strokeColor} label={(displayData?.label as string) || id} />}
-                {isTurbine && <TurbineIcon color={strokeColor} label={(displayData?.label as string) || id} />}
+              <div className="flex flex-col items-center cursor-help" style={{ gap: 2 }}>
+                {isPump && <PumpIcon color={strokeColor} label={edgeLabel} />}
+                {isCheckValve && <CheckValveIcon color={strokeColor} label={edgeLabel} />}
+                {isTurbine && <TurbineIcon color={strokeColor} label={edgeLabel} />}
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#000', lineHeight: 1, whiteSpace: 'nowrap', userSelect: 'none' }}>{edgeLabel}</span>
               </div>
             ) : (
               <div className="bg-white px-2 py-0.5 rounded-full border border-black text-[10px] font-semibold text-black cursor-help hover:bg-slate-50 transition-colors">
