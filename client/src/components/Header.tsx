@@ -75,7 +75,7 @@ import outputIcon from "@assets/output_1779526416694.png";
 import gridIcon from "@assets/grid_1779526458342.png";
 import fullscreenIcon from "@assets/fullscreen_1779526488758.png";
 import eyeOpenIcon from "@assets/view_(2)_1779527800443.png";
-import eyeHiddenIcon from "@assets/hidden_1779527819493.png";
+import eyeHiddenIcon from "@assets/hidden_1779529637135.png";
 
 // ─── Title bar compact button ─────────────────────────────────────────────────
 function TitleBarBtn({
@@ -479,7 +479,7 @@ export function Header({
           <TitleBarBtn imgSrc={addFileIcon} label="New" onClick={() => { clearNetwork(); }} />
           <TitleBarBtn imgSrc={openFolderIcon} label="Open" onClick={onLoad} />
           <TitleBarBtn imgSrc={floppyDiskIcon} label="Save" onClick={onSave} />
-          <TitleBarBtn imgSrc={disketteIcon} label="Save As" onClick={onSaveAs} />
+          <TitleBarBtn imgSrc={floppyDiskIcon} label="Save As" onClick={onSaveAs} />
           <div className="w-px bg-slate-200 mx-1 h-6 flex-shrink-0" />
           <TitleBarBtn icon={<Undo2 className="w-[22px] h-[22px]" />} label="Undo" onClick={undo} disabled={history.past.length === 0} />
           <TitleBarBtn icon={<Redo2 className="w-[22px] h-[22px]" />} label="Redo" onClick={redo} disabled={history.future.length === 0} />
@@ -490,7 +490,7 @@ export function Header({
           <div className="flex items-center gap-2 pointer-events-auto">
             <img src={folderIcon} alt="Folder" className="w-6 h-6 object-contain flex-shrink-0" />
             <input
-              className={`text-sm font-medium text-black bg-transparent border focus:ring-1 focus:ring-blue-500 px-1.5 py-0.5 rounded outline-none hover:bg-slate-50 min-w-[180px] ${projectNameError ? 'border-red-400 ring-1 ring-red-400' : 'border-transparent'}`}
+              className={`text-sm font-medium text-black bg-transparent border focus:outline-none px-1.5 py-0.5 rounded hover:bg-slate-50 w-[220px] text-center ${projectNameError ? 'border-red-400' : 'border-transparent'}`}
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
               placeholder="Enter project name..."
