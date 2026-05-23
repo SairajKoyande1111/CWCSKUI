@@ -103,7 +103,7 @@ function TitleBarBtn({
   );
 }
 
-// ─── Inline ribbon button (icon above, text below — stacked) ─────────────────
+// ─── Inline ribbon button (icon above, text below — fixed height, aligned) ────
 function InlineRibbonBtn({
   imgSrc, icon, label, onClick, disabled, active,
   ...rest
@@ -122,16 +122,22 @@ function InlineRibbonBtn({
       disabled={disabled}
       {...rest}
       className={cn(
-        "flex flex-col items-center justify-center gap-0.5 px-1.5 py-1 rounded transition-colors select-none min-w-[52px]",
+        "flex flex-col items-center h-[62px] px-2 py-1 rounded transition-colors select-none flex-1",
         disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer hover:bg-blue-50 active:bg-blue-100",
         active ? "bg-blue-100 ring-1 ring-blue-300" : "",
       )}
     >
-      {imgSrc
-        ? <img src={imgSrc} className="w-[20px] h-[20px] object-contain flex-shrink-0" alt={label} />
-        : <span className="flex-shrink-0 flex items-center">{icon}</span>
-      }
-      <span className="text-[9px] font-medium text-black text-center leading-tight max-w-[56px]" style={{ fontFamily: 'Poppins, sans-serif' }}>{label}</span>
+      {/* Icon zone — always same height, icon centered inside */}
+      <div className="flex flex-1 items-center justify-center">
+        {imgSrc
+          ? <img src={imgSrc} className="w-7 h-7 object-contain" alt={label} />
+          : <span className="flex items-center justify-center w-7 h-7">{icon}</span>
+        }
+      </div>
+      {/* Text zone — fixed height, always at bottom */}
+      <div className="h-[22px] flex items-end justify-center w-full">
+        <span className="text-[10px] font-semibold text-black text-center leading-tight" style={{ fontFamily: 'Poppins, sans-serif' }}>{label}</span>
+      </div>
     </button>
   );
 }
@@ -204,7 +210,7 @@ function RibbonGroup({ label, children }: { label: string; children: React.React
         <div className="text-center pt-1 pb-0.5">
           <span className="text-[10px] text-slate-500 font-semibold tracking-wider uppercase" style={{ fontFamily: 'Poppins, sans-serif' }}>{label}</span>
         </div>
-        <div className="flex items-center justify-center gap-1 px-2 pb-1.5 pt-0.5 flex-1">
+        <div className="flex items-stretch justify-evenly px-1 pb-1 pt-0 flex-1">
           {children}
         </div>
       </div>
