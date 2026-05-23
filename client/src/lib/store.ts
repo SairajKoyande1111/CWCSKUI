@@ -931,9 +931,9 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
       }
     }
 
-    const strokeColor = type === 'pump' ? '#f97316'
-      : type === 'checkValve' ? '#8b5cf6'
-      : '#14b8a6';
+    const strokeColor = type === 'pump' ? '#3d3100'
+      : type === 'checkValve' ? '#007a3f'
+      : '#ffd21f';
 
     const sourceNode = get().nodes.find(n => n.id === sourceId);
     const targetNode = get().nodes.find(n => n.id === targetId);
@@ -1022,6 +1022,15 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
           } else if (newType === 'dummy') {
             style = { stroke: '#94a3b8', strokeWidth: 2, strokeDasharray: '5,5' };
             markerEnd = { type: MarkerType.ArrowClosed, color: '#94a3b8' };
+          } else if (newType === 'pump') {
+            style = { stroke: '#3d3100', strokeWidth: 2.5 };
+            markerEnd = { type: MarkerType.ArrowClosed, color: '#3d3100' };
+          } else if (newType === 'checkValve') {
+            style = { stroke: '#007a3f', strokeWidth: 2.5 };
+            markerEnd = { type: MarkerType.ArrowClosed, color: '#007a3f' };
+          } else if (newType === 'turbine') {
+            style = { stroke: '#ffd21f', strokeWidth: 2.5 };
+            markerEnd = { type: MarkerType.ArrowClosed, color: '#ffd21f' };
           }
 
           return { 

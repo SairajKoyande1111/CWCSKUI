@@ -84,7 +84,7 @@ export const ConnectionEdge = memo(({
     : isCheckValve ? '#007a3f'
     : isTurbine ? '#ffd21f'
     : isDummy ? '#94a3b8'
-    : '#001b3d';
+    : '#3b82f6';
 
   const strokeDasharray = isDummy ? '8 8' : undefined;
 

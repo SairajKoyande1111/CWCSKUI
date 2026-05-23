@@ -57,7 +57,7 @@ export const ReservoirNode = memo(({ id, data, selected }: NodeProps) => {
   );
 });
 
-// Basic Node (Simple Node) — blue (no spec given, keep existing)
+// Basic Node (Simple Node) — original blue
 export const SimpleNode = memo(({ id, data, selected }: NodeProps) => {
   const node = useNetworkStore(state => state.nodes.find(n => n.id === id));
   const displayData = node ? node.data : data;
@@ -68,11 +68,11 @@ export const SimpleNode = memo(({ id, data, selected }: NodeProps) => {
       <div
         className="w-12 h-12 rounded-full shadow-sm flex items-center justify-center transition-all relative group bg-white"
         style={{
-          border: `3px solid ${hasOrderError ? '#ef4444' : selected ? '#001b3d' : '#001b3d'}`,
-          boxShadow: selected ? '0 0 0 3px rgba(0,27,61,0.2)' : undefined,
+          border: `3px solid ${hasOrderError ? '#ef4444' : '#3b82f6'}`,
+          boxShadow: selected ? '0 0 0 3px rgba(59,130,246,0.2)' : undefined,
         }}
       >
-        <span className="text-[13px] font-bold" style={{ color: '#001b3d' }}>N{data.nodeNumber as React.ReactNode}</span>
+        <span className="text-[13px] font-bold" style={{ color: '#3b82f6' }}>N{data.nodeNumber as React.ReactNode}</span>
         <Handle type="target" id="t-top" position={Position.Top} className={HandleStyle} />
         <Handle type="source" id="s-top" position={Position.Top} className={HandleStyle} />
         <Handle type="target" id="t-bottom" position={Position.Bottom} className={HandleStyle} />
