@@ -13,7 +13,7 @@ import pipeIcon from '@assets/pipe_1779523475650.png';
 import turbineImgIcon from '@assets/turbine_1779523517554.png';
 
 const EDGE_COLOR = '#000000';
-const CIRCLE_SIZE = 56;
+const CIRCLE_SIZE = 72;
 const BLACK_MARKER = { type: MarkerType.ArrowClosed, color: EDGE_COLOR };
 
 function ElementCircle({ icon, alt }: { icon: string; alt: string }) {
@@ -28,7 +28,7 @@ function ElementCircle({ icon, alt }: { icon: string; alt: string }) {
       alignItems: 'center',
       justifyContent: 'center',
     }}>
-      <img src={icon} style={{ width: 32, height: 32, objectFit: 'contain', pointerEvents: 'none' }} alt={alt} />
+      <img src={icon} style={{ width: 36, height: 36, objectFit: 'contain', pointerEvents: 'none' }} alt={alt} />
     </div>
   );
 }
