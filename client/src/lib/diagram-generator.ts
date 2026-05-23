@@ -1,305 +1,249 @@
 import { WhamoNode, WhamoEdge } from './store';
 
-export function generateSystemDiagramSVG(nodes: WhamoNode[], edges: WhamoEdge[], options: { showLabels: boolean } = { showLabels: true }) {
-  // 1. Better horizontal layout algorithm
-  const spacingX = 180;
-  const spacingY = 140;
-  
-  // Create a copy of nodes to not mutate store
-  const diagramNodes = [...nodes];
-  
-  // Identify start nodes (nodes with no incoming edges)
-  const sourceNodes = diagramNodes.filter(n => !edges.some(e => e.target === n.id));
-  
-  // Build adjacency list for layout
-  const adj: Record<string, string[]> = {};
+// Layout constants
+const R = 26;               // circle radius
+const RRW = 58; const RRH = 36; // reservoir / flowBoundary rect
+const STW = 30; const STH = 52; // surgeTank rect
+const SX = 190;             // horizontal spacing (column pitch)
+const SY = 120;             // vertical spacing (row pitch)
+const MG = 90;              // canvas margin
+
+function nHW(t: string): number {
+  if (t === 'reservoir' || t === 'flowBoundary') return RRW / 2;
+  if (t === 'surgeTank') return STW / 2;
+  return R;
+}
+function nHH(t: string): number {
+  if (t === 'surgeTank') return STH / 2;
+  if (t === 'reservoir' || t === 'flowBoundary') return RRH / 2;
+  return R;
+}
+
+function renderNode(type: string, x: number, y: number, label: string): string {
+  const hw = nHW(type);
+  const hh = nHH(type);
+  const lbl = `<text x="${x}" y="${y + hh + 15}" text-anchor="middle" font-size="11" font-weight="700" fill="#000" font-family="Arial,sans-serif">${escapeXml(label)}</text>`;
+
+  switch (type) {
+    case 'reservoir':
+      return (
+        `<rect x="${x - hw}" y="${y - hh}" width="${hw * 2}" height="${hh * 2}" rx="3" fill="white" stroke="#000" stroke-width="2"/>` +
+        `<path d="M${x - hw + 8} ${y - 5} Q${x} ${y - 11} ${x + hw - 8} ${y - 5}" fill="none" stroke="#000" stroke-width="1.5"/>` +
+        `<path d="M${x - hw + 8} ${y + 3} Q${x} ${y - 3} ${x + hw - 8} ${y + 3}" fill="none" stroke="#000" stroke-width="1.5"/>` +
+        lbl
+      );
+
+    case 'surgeTank':
+      return (
+        `<rect x="${x - hw}" y="${y - hh}" width="${hw * 2}" height="${hh * 2}" rx="2" fill="white" stroke="#000" stroke-width="2"/>` +
+        `<line x1="${x - hw}" y1="${y - hh + 14}" x2="${x + hw}" y2="${y - hh + 14}" stroke="#000" stroke-width="1.5"/>` +
+        lbl
+      );
+
+    case 'flowBoundary':
+      return (
+        `<rect x="${x - hw}" y="${y - hh}" width="${hw * 2}" height="${hh * 2}" rx="3" fill="white" stroke="#000" stroke-width="2"/>` +
+        `<path d="M${x - hw + 8} ${y} Q${x - hw / 2 + 4} ${y - 7} ${x} ${y} Q${x + hw / 2 - 4} ${y + 7} ${x + hw - 8} ${y}" fill="none" stroke="#000" stroke-width="1.5"/>` +
+        lbl
+      );
+
+    case 'junction':
+      return (
+        `<circle cx="${x}" cy="${y}" r="${R}" fill="white" stroke="#000" stroke-width="2"/>` +
+        `<line x1="${x}" y1="${y + R - 7}" x2="${x}" y2="${y + 2}" stroke="#000" stroke-width="2.5"/>` +
+        `<line x1="${x}" y1="${y + 2}" x2="${x - 9}" y2="${y - 10}" stroke="#000" stroke-width="2.5"/>` +
+        `<line x1="${x}" y1="${y + 2}" x2="${x + 9}" y2="${y - 10}" stroke="#000" stroke-width="2.5"/>` +
+        lbl
+      );
+
+    case 'pump':
+      return (
+        `<circle cx="${x}" cy="${y}" r="${R}" fill="white" stroke="#000" stroke-width="2"/>` +
+        `<circle cx="${x}" cy="${y - 2}" r="8" fill="none" stroke="#000" stroke-width="1.5"/>` +
+        `<path d="M${x} ${y - 10} Q${x + 12} ${y - 7} ${x + 11} ${y + 3}" stroke="#000" stroke-width="1.5" fill="none"/>` +
+        `<path d="M${x} ${y + 6} Q${x - 12} ${y + 3} ${x - 11} ${y - 7}" stroke="#000" stroke-width="1.5" fill="none"/>` +
+        lbl
+      );
+
+    case 'checkValve':
+      return (
+        `<circle cx="${x}" cy="${y}" r="${R}" fill="white" stroke="#000" stroke-width="2"/>` +
+        `<polygon points="${x - 10},${y - 9} ${x - 10},${y + 9} ${x + 7},${y}" fill="#000"/>` +
+        `<line x1="${x + 7}" y1="${y - 11}" x2="${x + 7}" y2="${y + 11}" stroke="#000" stroke-width="2.5"/>` +
+        lbl
+      );
+
+    case 'turbine':
+      return (
+        `<circle cx="${x}" cy="${y}" r="${R}" fill="white" stroke="#000" stroke-width="2"/>` +
+        `<circle cx="${x}" cy="${y}" r="4" fill="#000"/>` +
+        `<path d="M${x} ${y} L${x + 4} ${y - 19} A19 19 0 0 1 ${x + 19} ${y - 4} Z" fill="#000" opacity="0.85"/>` +
+        `<path d="M${x} ${y} L${x - 4} ${y + 19} A19 19 0 0 1 ${x - 19} ${y + 4} Z" fill="#000" opacity="0.85"/>` +
+        lbl
+      );
+
+    case 'node':
+    default:
+      return (
+        `<circle cx="${x}" cy="${y}" r="${R}" fill="white" stroke="#000" stroke-width="2"/>` +
+        `<text x="${x}" y="${y + 4}" text-anchor="middle" font-size="11" font-weight="700" fill="#000" font-family="Arial,sans-serif">${escapeXml(label)}</text>`
+      );
+  }
+}
+
+function escapeXml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+export function generateSystemDiagramSVG(
+  nodes: WhamoNode[],
+  edges: WhamoEdge[],
+  options: { showLabels: boolean } = { showLabels: true }
+): string {
+  const { showLabels } = options;
+
+  type VN = { id: string; type: string; label: string };
+  type VE = { from: string; to: string; label: string; isDummy: boolean };
+
+  // Build virtual graph: edge-based pump/checkValve/turbine → virtual nodes
+  const vns: VN[] = nodes.map(n => ({
+    id: n.id,
+    type: n.type || 'node',
+    label: String(n.data?.label || ''),
+  }));
+
+  const ves: VE[] = [];
+
   edges.forEach(e => {
-    if (!adj[e.source]) adj[e.source] = [];
-    adj[e.source].push(e.target);
-  });
+    const etype = String(e.data?.type || '');
+    const isElem = etype === 'pump' || etype === 'checkValve' || etype === 'turbine';
+    const isDummy = etype === 'dummy';
+    const elabel = String(e.data?.label || '');
 
-  // Assign levels (columns) based on distance from source nodes
-  const levels: Record<string, number> = {};
-  const queue: string[] = sourceNodes.length > 0 ? sourceNodes.map(s => s.id) : (diagramNodes.length > 0 ? [diagramNodes[0].id] : []);
-  
-  sourceNodes.forEach(s => levels[s.id] = 0);
-  if (sourceNodes.length === 0 && diagramNodes.length > 0) {
-    levels[diagramNodes[0].id] = 0;
-  }
-
-  while (queue.length > 0) {
-    const u = queue.shift()!;
-    const neighbors = adj[u] || [];
-    neighbors.forEach(v => {
-      if (levels[v] === undefined) {
-        levels[v] = levels[u] + 1;
-        queue.push(v);
-      } else {
-        levels[v] = Math.max(levels[v], levels[u] + 1);
-      }
-    });
-  }
-
-  // Ensure all nodes have a level even if not reachable from sources
-  diagramNodes.forEach(n => {
-    if (levels[n.id] === undefined) {
-      // Find if this node has any outgoing edges to nodes that DO have levels
-      // This helps with downstream/reversed networks
-      const outgoing = adj[n.id] || [];
-      const neighborWithLevel = outgoing.find(v => levels[v] !== undefined);
-      if (neighborWithLevel !== undefined) {
-        levels[n.id] = Math.max(0, levels[neighborWithLevel] - 1);
-      } else {
-        levels[n.id] = 0;
-      }
+    if (isElem) {
+      const vid = `__v_${e.id}`;
+      vns.push({ id: vid, type: etype, label: elabel });
+      ves.push({ from: e.source, to: vid, label: '', isDummy: false });
+      ves.push({ from: vid, to: e.target, label: '', isDummy: false });
+    } else {
+      ves.push({ from: e.source, to: e.target, label: elabel, isDummy });
     }
   });
 
-  // Second pass for levels to ensure proper spacing for downstream nodes
-  let changed = true;
-  while (changed) {
-    changed = false;
-    edges.forEach(e => {
-      if (levels[e.source] !== undefined && levels[e.target] !== undefined) {
-        if (levels[e.target] <= levels[e.source]) {
-          levels[e.target] = levels[e.source] + 1;
-          changed = true;
-        }
-      }
-    });
+  if (vns.length === 0) {
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="120"><text x="200" y="65" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" fill="#999">No elements to display</text></svg>';
   }
 
-  // Group nodes by level
-  const levelsMap: Record<number, string[]> = {};
-  diagramNodes.forEach(n => {
-    const lvl = levels[n.id] || 0;
-    if (!levelsMap[lvl]) levelsMap[lvl] = [];
-    levelsMap[lvl].push(n.id);
+  // BFS level assignment
+  const adj: Record<string, string[]> = {};
+  const inDeg: Record<string, number> = {};
+  vns.forEach(n => { adj[n.id] = []; inDeg[n.id] = 0; });
+  ves.forEach(e => {
+    if (adj[e.from]) adj[e.from].push(e.to);
+    if (e.to in inDeg) inDeg[e.to] = (inDeg[e.to] || 0) + 1;
   });
 
-  // Assign horizontal positions based on level, and vertical based on index in level
-  const posMap: Record<string, {x: number, y: number}> = {};
-  let maxNodesInLevel = 0;
-  Object.entries(levelsMap).forEach(([lvlStr, nodeIds]) => {
-    maxNodesInLevel = Math.max(maxNodesInLevel, nodeIds.length);
+  const sources = vns.filter(n => !inDeg[n.id]).map(n => n.id);
+  const lvl: Record<string, number> = {};
+  (sources.length > 0 ? sources : [vns[0].id]).forEach(s => { lvl[s] = 0; });
+  const q = sources.length > 0 ? [...sources] : [vns[0].id];
+
+  while (q.length > 0) {
+    const u = q.shift()!;
+    for (const v of (adj[u] || [])) {
+      if (lvl[v] === undefined || lvl[v] <= lvl[u]) {
+        lvl[v] = lvl[u] + 1;
+        q.push(v);
+      }
+    }
+  }
+  vns.forEach(n => { if (lvl[n.id] === undefined) lvl[n.id] = 0; });
+
+  // Group by level
+  const byLv: Record<number, string[]> = {};
+  vns.forEach(n => {
+    const l = lvl[n.id];
+    if (!byLv[l]) byLv[l] = [];
+    byLv[l].push(n.id);
   });
 
-  const numLevels = Object.keys(levelsMap).length;
-  // Increase SVG size to ensure everything fits comfortably
-  const svgWidth = Math.max(1600, (numLevels + 1) * spacingX + 200);
-  const svgHeight = Math.max(900, (maxNodesInLevel + 1) * spacingY + 200);
+  const nLevels = Math.max(...Object.keys(byLv).map(Number)) + 1;
+  const maxPerLevel = Math.max(...Object.values(byLv).map(a => a.length));
 
-  Object.entries(levelsMap).forEach(([lvlStr, nodeIds]) => {
-    const lvl = parseInt(lvlStr);
-    const levelHeight = nodeIds.length * spacingY;
-    const startY = (svgHeight - levelHeight) / 2 + spacingY / 2;
-    
-    nodeIds.forEach((id, idx) => {
-      posMap[id] = {
-        x: 100 + lvl * spacingX,
-        y: startY + idx * spacingY
-      };
+  // Extra vertical space for labels (15px text + some margin)
+  const labelExtra = 30;
+  const svgW = MG * 2 + (nLevels - 1) * SX + RRW + 60;
+  const svgH = Math.max(280, MG * 2 + (maxPerLevel - 1) * SY + STH + labelExtra + 40);
+
+  const pos: Record<string, { x: number; y: number }> = {};
+  Object.entries(byLv).forEach(([lStr, ids]) => {
+    const l = parseInt(lStr);
+    const cx = MG + l * SX;
+    const totalH = (ids.length - 1) * SY;
+    const startY = (svgH / 2) - (totalH / 2);
+    ids.forEach((id, i) => {
+      pos[id] = { x: cx, y: startY + i * SY };
     });
   });
 
-  const findNode = (id: string) => nodes.find(n => n.id === id);
+  const nm: Record<string, VN> = {};
+  vns.forEach(n => { nm[n.id] = n; });
 
-  let svgContent = `
-    <svg id="system-diagram-svg" width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" class="bg-white">
-      <style>
-        .diagram-edge, .node { cursor: pointer; }
-        .diagram-edge:hover path { stroke-width: 5; stroke: #2980b9; }
-        .node:hover rect, .node:hover circle, .node:hover path { stroke-width: 4; stroke: #2c3e50; }
-      </style>
-      <defs>
-        <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-          <polygon points="0 0, 10 3, 0 6" fill="#3498db" />
-        </marker>
-        <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur in="SourceAlpha" stdDeviation="2" />
-          <feOffset dx="1" dy="1" result="offsetblur" />
-          <feComponentTransfer>
-            <feFuncA type="linear" slope="0.3" />
-          </feComponentTransfer>
-          <feMerge>
-            <feMergeNode />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
-  `;
+  // SVG output
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" style="background:white">
+<defs>
+  <marker id="arr" markerWidth="8" markerHeight="7" refX="7" refY="3.5" orient="auto">
+    <polygon points="0 0, 8 3.5, 0 7" fill="#000"/>
+  </marker>
+</defs>
+`;
 
-  // Draw Edges (Pipes)
-  edges.forEach(edge => {
-    const sourceNode = findNode(edge.source);
-    const targetNode = findNode(edge.target);
-    if (!sourceNode || !targetNode) return;
-
-    const p1 = posMap[edge.source];
-    const p2 = posMap[edge.target];
+  // Draw edges first (under nodes)
+  ves.forEach(ve => {
+    const p1 = pos[ve.from];
+    const p2 = pos[ve.to];
     if (!p1 || !p2) return;
 
-    const x1 = p1.x;
+    const t1 = nm[ve.from]?.type || 'node';
+    const t2 = nm[ve.to]?.type || 'node';
+    const x1 = p1.x + nHW(t1);
     const y1 = p1.y;
-    const x2 = p2.x;
+    const x2 = p2.x - nHW(t2);
     const y2 = p2.y;
 
-    const isDummy = edge.data?.type === 'dummy';
-    const className = isDummy ? 'stroke="#94a3b8" stroke-width="2" stroke-dasharray="8,8"' : 'stroke="#3498db" stroke-width="3"';
-    const marker = isDummy ? '' : 'marker-end="url(#arrowhead)"';
+    const sty = ve.isDummy
+      ? 'stroke="#bbb" stroke-width="1.5" stroke-dasharray="6,4"'
+      : 'stroke="#000" stroke-width="1.5"';
+    const mk = ve.isDummy ? '' : 'marker-end="url(#arr)"';
 
-    // Prepare tooltip data
-    const edgeData = (edge.data || {}) as any;
-    const tooltipText = [
-      "ID: " + edge.id,
-      "Type: " + (edgeData.type || 'N/A'),
-      edgeData.length !== undefined ? "Length: " + edgeData.length : null,
-      edgeData.diameter !== undefined ? "Diameter: " + edgeData.diameter : null,
-      edgeData.celerity !== undefined ? "Celerity: " + edgeData.celerity : null,
-      edgeData.friction !== undefined ? "Friction: " + edgeData.friction : null,
-      edgeData.comment ? "Comment: " + edgeData.comment : null
-    ].filter(Boolean).join(' | ');
-
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const mx = (x1 + x2) / 2;
-    const my = (y1 + y2) / 2;
-    const path = `M ${x1} ${y1} Q ${mx} ${my - dy * 0.1} ${x2} ${y2}`;
-
-    svgContent += `
-      <g class="diagram-edge">
-        <title>${tooltipText}</title>
-        <path d="${path}" ${className} ${marker} fill="none" />
-        <path d="${path}" stroke="transparent" stroke-width="20" fill="none" />
-      </g>
-    `;
-    
-    // Label with background to ensure readability
-    if (options.showLabels) {
-      const label = edgeData.label || edgeData.pipeId || '';
-      if (label) {
-        const midX = (x1 + x2) / 2;
-        const midY = (y1 + y2) / 2 - 15;
-        
-        // Only display the label name
-        const boxWidth = label.length * 8 + 12;
-
-        svgContent += `
-          <g>
-            <rect x="${midX - boxWidth/2}" y="${midY - 12}" width="${boxWidth}" height="24" fill="white" fill-opacity="0.9" rx="4" stroke="#bdc3c7" stroke-width="1" />
-            <text x="${midX}" y="${midY + 4}" font-size="10" fill="#2c3e50" font-weight="bold" text-anchor="middle">${label}</text>
-          </g>
-        `;
-      }
-    }
-  });
-
-  // Draw Nodes
-  diagramNodes.forEach(node => {
-    const pos = posMap[node.id];
-    if (!pos) return;
-    const { x, y } = pos;
-    const nodeData = (node.data || {}) as any;
-    const label = nodeData.label || '';
-    const nodeNum = nodeData.nodeNumber || node.id;
-    const elev = nodeData.elevation !== undefined ? nodeData.elevation : '';
-
-    // Prepare tooltip data
-    const tooltipText = [
-      "ID: " + node.id,
-      "Type: " + node.type,
-      "Label: " + label,
-      "Node #: " + nodeNum,
-      elev !== '' ? "Elevation: " + elev : null,
-      nodeData.topElevation !== undefined ? "Top Elev: " + nodeData.topElevation : null,
-      nodeData.bottomElevation !== undefined ? "Bottom Elev: " + nodeData.bottomElevation : null,
-      nodeData.diameter !== undefined ? "Diameter: " + nodeData.diameter : null,
-      nodeData.celerity !== undefined ? "Celerity: " + nodeData.celerity : null,
-      nodeData.friction !== undefined ? "Friction: " + nodeData.friction : null,
-      nodeData.scheduleNumber !== undefined ? "Schedule: " + nodeData.scheduleNumber : null,
-      nodeData.comment ? "Comment: " + nodeData.comment : null
-    ].filter(Boolean).join(' | ');
-
-    const nodeLabel = options.showLabels ? `Node ${nodeNum}` : '';
-    const nodeLabelColor = "#94a3b8"; // Grey color for node identifier
-
-    if (node.type === 'reservoir') {
-      svgContent += `
-        <g class="node" filter="url(#shadow)">
-          <title>${tooltipText}</title>
-          <rect x="${x - 25}" y="${y - 20}" width="50" height="40" fill="#3498db" stroke="#2980b9" stroke-width="2" rx="4" />
-          <text x="${x}" y="${y + 5}" text-anchor="middle" fill="white" font-size="12" font-weight="bold">${label || 'HW'}</text>
-          ${nodeLabel ? `<text x="${x}" y="${y - 30}" text-anchor="middle" fill="${nodeLabelColor}" font-size="10" font-weight="bold">${nodeLabel}</text>` : ''}
-        </g>
-      `;
-    } else if (node.type === 'surgeTank') {
-      svgContent += `
-        <g class="node" filter="url(#shadow)">
-          <title>${tooltipText}</title>
-          <rect x="${x - 20}" y="${y - 30}" width="40" height="60" fill="#f39c12" stroke="#e67e22" stroke-width="2" rx="4" />
-          <text x="${x}" y="${y + 5}" text-anchor="middle" fill="white" font-size="11" font-weight="bold">ST</text>
-          ${nodeLabel ? `<text x="${x}" y="${y - 40}" text-anchor="middle" fill="${nodeLabelColor}" font-size="10" font-weight="bold">${nodeLabel}</text>` : ''}
-        </g>
-      `;
-    } else if (node.type === 'flowBoundary') {
-      svgContent += `
-        <g class="node" filter="url(#shadow)">
-          <title>${tooltipText}</title>
-          <path d="M ${x-25} ${y-15} L ${x+25} ${y} L ${x-25} ${y+15} Z" fill="#2ecc71" stroke="#27ae60" stroke-width="2" />
-          <text x="${x - 5}" y="${y + 4}" text-anchor="middle" fill="white" font-size="10" font-weight="bold">${label || 'FB'}</text>
-          ${nodeLabel ? `<text x="${x}" y="${y + 30}" text-anchor="middle" fill="${nodeLabelColor}" font-size="10" font-weight="bold">${nodeLabel}</text>` : ''}
-        </g>
-      `;
-    } else if (node.type === 'junction') {
-      svgContent += `
-        <g class="node" filter="url(#shadow)">
-          <title>${tooltipText}</title>
-          <circle cx="${x}" cy="${y}" r="8" fill="#e74c3c" stroke="#c0392b" stroke-width="2" />
-          ${nodeLabel ? `<text x="${x}" y="${y - 15}" text-anchor="middle" fill="${nodeLabelColor}" font-size="10" font-weight="bold">${nodeLabel}</text>` : ''}
-        </g>
-      `;
+    let d: string;
+    if (Math.abs(y1 - y2) < 3) {
+      d = `M${x1} ${y1} L${x2} ${y2}`;
     } else {
-      svgContent += `
-        <g class="node">
-          <title>${tooltipText}</title>
-          <circle cx="${x}" cy="${y}" r="6" fill="#95a5a6" stroke="#7f8c8d" stroke-width="2" />
-          ${nodeLabel ? `<text x="${x}" y="${y - 15}" text-anchor="middle" fill="${nodeLabelColor}" font-size="10">${nodeLabel}</text>` : ''}
-        </g>
-      `;
+      const mx = x1 + (x2 - x1) * 0.45;
+      d = `M${x1} ${y1} L${mx} ${y1} L${mx} ${y2} L${x2} ${y2}`;
+    }
+
+    svg += `<path d="${d}" ${sty} fill="none" ${mk}/>\n`;
+
+    if (showLabels && ve.label) {
+      const lx = (x1 + Math.min(x1 + (x2 - x1) * 0.45, x2)) / 2;
+      const ly = Math.min(y1, y2);
+      const lw = ve.label.length * 7 + 14;
+      svg += `<rect x="${lx - lw / 2}" y="${ly - 20}" width="${lw}" height="16" rx="8" fill="white" stroke="#000" stroke-width="1"/>\n`;
+      svg += `<text x="${lx}" y="${ly - 8}" text-anchor="middle" font-size="10" font-weight="600" fill="#000" font-family="Arial,sans-serif">${escapeXml(ve.label)}</text>\n`;
     }
   });
 
-  // Add Legend/Indicator Box
-  const legendY = svgHeight - 60;
-  const legendX = 80;
-  svgContent += `
-    <g transform="translate(${legendX}, ${legendY})">
-      <rect x="-10" y="-10" width="600" height="50" fill="white" fill-opacity="0.9" rx="8" stroke="#ecf0f1" stroke-width="1" />
-      
-      <g transform="translate(0, 15)">
-        <rect x="0" y="-8" width="20" height="16" fill="#3498db" rx="2" />
-        <text x="25" y="5" font-size="12" fill="#7f8c8d" font-weight="bold">RESERVOIR</text>
-      </g>
-      
-      <g transform="translate(130, 15)">
-        <rect x="0" y="-10" width="15" height="20" fill="#f39c12" rx="2" />
-        <text x="20" y="5" font-size="12" fill="#7f8c8d" font-weight="bold">SURGE TANK</text>
-      </g>
-      
-      <g transform="translate(260, 15)">
-        <circle cx="8" cy="0" r="8" fill="#e74c3c" />
-        <text x="22" y="5" font-size="12" fill="#7f8c8d" font-weight="bold">NODE/JUNCTION</text>
-      </g>
-      
-      <g transform="translate(410, 15)">
-        <path d="M 0 -8 L 20 0 L 0 8 Z" fill="#2ecc71" />
-        <text x="25" y="5" font-size="12" fill="#7f8c8d" font-weight="bold">FLOW BOUNDARY</text>
-      </g>
-    </g>
-  `;
+  // Draw nodes on top
+  vns.forEach(vn => {
+    const p = pos[vn.id];
+    if (!p) return;
+    svg += renderNode(vn.type, p.x, p.y, vn.label);
+  });
 
-  svgContent += `</svg>`;
-  return svgContent;
+  svg += '</svg>';
+  return svg;
 }
 
 export const generateSystemDiagram = generateSystemDiagramSVG;

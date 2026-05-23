@@ -52,7 +52,6 @@ import {
   Layout
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import {
   Popover,
   PopoverContent,
@@ -916,6 +915,7 @@ function DesignerInner() {
           const svg = generateSystemDiagram(nodes, edges, { showLabels });
           setDiagramSvg(svg);
           setShowDiagram(true);
+          setIsMaximized(true);
         }}
         onVisualization={handleVisualizationClick}
         activeLinkTool={activeLinkTool}
@@ -1083,23 +1083,23 @@ function DesignerInner() {
                       </div>
                       
                       {/* Integrated Legend */}
-                      <div className="flex items-center gap-4 border-l pl-6">
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-3 bg-[#3498db] border border-[#2980b9] rounded-sm" />
-                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-tight">Reservoir</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-5 bg-[#f39c12] border border-[#e67e22] rounded-sm" />
-                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-tight">Surge Tank</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-[#e74c3c] border border-[#c0392b] rounded-full" />
-                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-tight">Node/Junction</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-5 h-[2px] bg-[#3498db]" />
-                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-tight">Conduit</span>
-                        </div>
+                      <div className="flex items-center gap-3 border-l pl-5 flex-wrap">
+                        {[
+                          { label: 'Reservoir', shape: <svg width="16" height="11" viewBox="0 0 16 11"><rect x="1" y="1" width="14" height="9" rx="1" fill="white" stroke="black" strokeWidth="1.5"/><path d="M3 4.5 Q8 2 13 4.5" fill="none" stroke="black" strokeWidth="1"/><path d="M3 7 Q8 4.5 13 7" fill="none" stroke="black" strokeWidth="1"/></svg> },
+                          { label: 'Surge Tank', shape: <svg width="9" height="16" viewBox="0 0 9 16"><rect x="1" y="1" width="7" height="14" rx="1" fill="white" stroke="black" strokeWidth="1.5"/><line x1="1" y1="5" x2="8" y2="5" stroke="black" strokeWidth="1"/></svg> },
+                          { label: 'Flow BC', shape: <svg width="16" height="11" viewBox="0 0 16 11"><rect x="1" y="1" width="14" height="9" rx="1" fill="white" stroke="black" strokeWidth="1.5"/><path d="M3 5.5 Q6 3 8 5.5 Q10 8 13 5.5" fill="none" stroke="black" strokeWidth="1"/></svg> },
+                          { label: 'Node', shape: <svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="white" stroke="black" strokeWidth="1.5"/></svg> },
+                          { label: 'Junction', shape: <svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="white" stroke="black" strokeWidth="1.5"/><line x1="7" y1="12" x2="7" y2="7" stroke="black" strokeWidth="1.5"/><line x1="7" y1="7" x2="4" y2="4" stroke="black" strokeWidth="1.5"/><line x1="7" y1="7" x2="10" y2="4" stroke="black" strokeWidth="1.5"/></svg> },
+                          { label: 'Pump', shape: <svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="white" stroke="black" strokeWidth="1.5"/><circle cx="7" cy="6" r="3" fill="none" stroke="black" strokeWidth="1"/><path d="M7 3 Q10 4 10 7" fill="none" stroke="black" strokeWidth="1"/></svg> },
+                          { label: 'Check Valve', shape: <svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="white" stroke="black" strokeWidth="1.5"/><polygon points="3,4 3,10 9,7" fill="black"/><line x1="9" y1="4" x2="9" y2="10" stroke="black" strokeWidth="1.5"/></svg> },
+                          { label: 'Turbine', shape: <svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="white" stroke="black" strokeWidth="1.5"/><circle cx="7" cy="7" r="2" fill="black"/><path d="M7 7 L8 2 A6 6 0 0 1 12 6 Z" fill="black" opacity="0.85"/><path d="M7 7 L6 12 A6 6 0 0 1 2 8 Z" fill="black" opacity="0.85"/></svg> },
+                          { label: 'Conduit', shape: <svg width="22" height="8" viewBox="0 0 22 8"><line x1="1" y1="4" x2="18" y2="4" stroke="black" strokeWidth="1.5"/><polygon points="15,1 22,4 15,7" fill="black"/></svg> },
+                        ].map(({ label, shape }) => (
+                          <div key={label} className="flex items-center gap-1.5">
+                            {shape}
+                            <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-tight whitespace-nowrap">{label}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                     
@@ -1137,42 +1137,16 @@ function DesignerInner() {
                     </div>
                   </div>
                   
-                  <div className="flex-1 overflow-auto bg-slate-100/50 relative">
-                    <TransformWrapper
-                      initialScale={1}
-                      minScale={0.1}
-                      maxScale={4}
-                      centerOnInit={false}
-                      limitToBounds={false}
-                    >
-                      <TransformComponent
-                        wrapperStyle={{
-                          width: "100%",
-                          height: "100%",
-                        }}
-                        contentStyle={{
-                          width: "max-content",
-                          height: "max-content",
-                          padding: "100px",
-                        }}
-                      >
-                        <div 
-                          id="system-diagram-container"
-                          className="bg-white shadow-2xl rounded-2xl border border-slate-200 p-20"
-                          style={{ 
-                            width: "max-content", 
-                            height: "max-content",
-                            minWidth: "1200px",
-                            minHeight: "800px"
-                          }}
-                          dangerouslySetInnerHTML={{ __html: diagramSvg || '' }} 
-                        />
-                      </TransformComponent>
-                    </TransformWrapper>
+                  <div className="flex-1 overflow-auto bg-white">
+                    <div
+                      id="system-diagram-container"
+                      className="p-8"
+                      dangerouslySetInnerHTML={{ __html: diagramSvg || '' }}
+                    />
                   </div>
 
-                  {/* Absolute positioning for controls */}
-                  <div className="absolute bottom-6 right-6 flex flex-col gap-2 z-10">
+                  {/* Minimize button */}
+                  <div className="absolute bottom-6 right-6 z-10">
                     <Button
                       size="icon"
                       variant="secondary"
