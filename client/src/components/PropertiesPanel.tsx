@@ -16,6 +16,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Trash2, ChevronDown, ChevronRight, Plus, CheckCircle2, Save, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { getNodeSequenceViolations } from '@/lib/validator';
+import saveIconImg from '@assets/diskette_(1)_1779571608664.png';
+import deleteIconImg from '@assets/bin_(4)_1779571627860.png';
 
 type NumericInputProps = Omit<ComponentProps<typeof Input>, 'value' | 'onChange' | 'type' | 'inputMode'> & {
   value: any;
@@ -279,8 +281,8 @@ function PropSection({ title, children, defaultOpen = true }: { title: string; c
 
 function PropRow({ label, children, noBorder }: { label: string; children: React.ReactNode; noBorder?: boolean }) {
   return (
-    <div className={`flex items-center gap-2 px-3 py-2 ${!noBorder ? 'border-b border-slate-100' : ''}`}>
-      <span className="text-[12px] font-medium text-black w-[42%] shrink-0 leading-tight" style={{ fontFamily: 'Poppins, sans-serif' }}>{label}</span>
+    <div className={`flex items-center gap-3 px-3 py-3 ${!noBorder ? 'border-b border-slate-100' : ''}`}>
+      <span className="text-[13px] font-semibold text-black w-[42%] shrink-0 leading-normal" style={{ fontFamily: 'Poppins, sans-serif' }}>{label}</span>
       <div className="flex-1 min-w-0">{children}</div>
     </div>
   );
@@ -889,22 +891,23 @@ export function PropertiesPanel() {
 
                     {/* Boundary Condition section */}
                     <PropSection title="Boundary Condition">
-                      <PropRow label="Mode" noBorder>
-                        <div className="flex items-center gap-1 rounded-full border-2 border-slate-300 bg-white overflow-hidden shadow-sm w-fit">
-                          <button
-                            type="button"
-                            onClick={() => handleChange('mode', 'fixed')}
-                            className={`text-[11px] font-bold px-3 py-0.5 transition-colors whitespace-nowrap ${(formData.mode || 'fixed') === 'fixed' ? 'bg-blue-600 text-white' : 'text-black hover:bg-slate-50'}`}
-                            style={{ fontFamily: 'Poppins, sans-serif' }}
-                          >Fixed HW</button>
-                          <button
-                            type="button"
-                            onClick={() => handleChange('mode', 'schedule')}
-                            className={`text-[11px] font-bold px-3 py-0.5 transition-colors whitespace-nowrap ${formData.mode === 'schedule' ? 'bg-blue-600 text-white' : 'text-black hover:bg-slate-50'}`}
-                            style={{ fontFamily: 'Poppins, sans-serif' }}
-                          >H Schedule</button>
-                        </div>
-                      </PropRow>
+                      <div className="px-3 py-3 space-y-2">
+                        <span className="text-[13px] font-semibold text-black" style={{ fontFamily: 'Poppins, sans-serif' }}>Mode</span>
+                        <RadioGroup
+                          value={formData.mode || 'fixed'}
+                          onValueChange={(v) => handleChange('mode', v)}
+                          className="flex flex-col gap-2.5 pt-1"
+                        >
+                          <label className="flex items-center gap-2.5 cursor-pointer group">
+                            <RadioGroupItem value="fixed" id="res-mode-fixed" />
+                            <span className="text-[13px] font-semibold text-black group-hover:text-blue-700 transition-colors" style={{ fontFamily: 'Poppins, sans-serif' }}>Fixed HW</span>
+                          </label>
+                          <label className="flex items-center gap-2.5 cursor-pointer group">
+                            <RadioGroupItem value="schedule" id="res-mode-schedule" />
+                            <span className="text-[13px] font-semibold text-black group-hover:text-blue-700 transition-colors" style={{ fontFamily: 'Poppins, sans-serif' }}>H Schedule</span>
+                          </label>
+                        </RadioGroup>
+                      </div>
                     </PropSection>
 
                     {/* Fixed elevation or schedule */}
@@ -2278,23 +2281,33 @@ export function PropertiesPanel() {
             onClick={handleSave}
             disabled={!isDirty}
             data-testid="button-save-element"
-            className={`flex-1 flex items-center justify-center gap-1.5 rounded-full py-2 text-[13px] font-semibold transition-colors
+            className={`flex-1 flex items-center justify-center gap-2 rounded-full py-2 transition-colors
               ${isDirty
                 ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'
                 : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}
             style={{ fontFamily: 'Poppins, sans-serif' }}
           >
-            <Save className="h-3.5 w-3.5" />
-            Save
+            <img
+              src={saveIconImg}
+              alt="Save"
+              className="h-[18px] w-[18px] object-contain"
+              style={{ filter: isDirty ? 'brightness(0) invert(1)' : 'brightness(0) opacity(0.4)' }}
+            />
+            <span className="text-[14px] font-semibold">Save</span>
           </button>
           <button
             onClick={() => selectedElementId && selectedElementType && deleteElement(selectedElementId, selectedElementType)}
             data-testid="button-delete-element"
-            className="flex-1 flex items-center justify-center gap-1.5 rounded-full py-2 text-[13px] font-semibold bg-red-500 hover:bg-red-600 text-white shadow-sm transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 rounded-full py-2 bg-red-500 hover:bg-red-600 text-white shadow-sm transition-colors"
             style={{ fontFamily: 'Poppins, sans-serif' }}
           >
-            <Trash2 className="h-3.5 w-3.5" />
-            Delete
+            <img
+              src={deleteIconImg}
+              alt="Delete"
+              className="h-[18px] w-[18px] object-contain"
+              style={{ filter: 'brightness(0) invert(1)' }}
+            />
+            <span className="text-[14px] font-semibold">Delete</span>
           </button>
         </div>
       </div>
