@@ -5,9 +5,8 @@ const R   = 9;                       // circle node radius
 const RRW = 42; const RRH = 26;      // reservoir / flowBoundary (w × h)
 const STW = 20; const STH = 32;      // surgeTank (w × h)
 const SX  = 150;                     // column pitch (px)
-const SY  = 92;                      // row pitch (px)
+const SY  = 90;                      // row pitch (px)
 const MG  = 85;                      // canvas margin
-const LATERAL_OFFSET = 90;           // px above anchor for lateral nodes
 
 // ─── Bright colours per type ──────────────────────────────────────────────────
 const COLORS: Record<string, { fill: string; stroke: string; text: string }> = {
@@ -72,6 +71,45 @@ function renderNode(type: string, x: number, y: number, label: string, srcId: st
 </g>`;
 }
 
+// ─── Get the canvas y-position for any node (real or virtual inline element) ──
+function getCanvasY(
+  id: string,
+  srcType: string,
+  srcId: string,
+  nodes: WhamoNode[],
+  edges: WhamoEdge[],
+): number {
+  if (srcType === 'node') {
+    const n = nodes.find(n => n.id === srcId);
+    return n?.position.y ?? 0;
+  }
+  // Virtual node (inline pump / checkValve / turbine) — midpoint of its edge endpoints
+  const e = edges.find(e => e.id === srcId);
+  if (!e) return 0;
+  const src = nodes.find(n => n.id === e.source);
+  const tgt = nodes.find(n => n.id === e.target);
+  return ((src?.position.y ?? 0) + (tgt?.position.y ?? 0)) / 2;
+}
+
+// ─── Get the canvas x-position for any node (real or virtual inline element) ──
+function getCanvasX(
+  id: string,
+  srcType: string,
+  srcId: string,
+  nodes: WhamoNode[],
+  edges: WhamoEdge[],
+): number {
+  if (srcType === 'node') {
+    const n = nodes.find(n => n.id === srcId);
+    return n?.position.x ?? 0;
+  }
+  const e = edges.find(e => e.id === srcId);
+  if (!e) return 0;
+  const src = nodes.find(n => n.id === e.source);
+  const tgt = nodes.find(n => n.id === e.target);
+  return ((src?.position.x ?? 0) + (tgt?.position.x ?? 0)) / 2;
+}
+
 // ─── Main export ─────────────────────────────────────────────────────────────
 export function generateSystemDiagramSVG(
   nodes: WhamoNode[],
@@ -83,7 +121,8 @@ export function generateSystemDiagramSVG(
   type VN = { id: string; type: string; label: string; srcId: string; srcType: string };
   type VE = { from: string; to: string; label: string; isDummy: boolean; srcEdgeId: string };
 
-  // Build virtual graph: edge-based elements (pump/checkValve/turbine) → inline virtual nodes
+  // ── Build virtual graph ────────────────────────────────────────────────────
+  // Edge-based elements (pump/checkValve/turbine) become inline virtual nodes.
   const vns: VN[] = nodes.map(n => ({
     id:      n.id,
     type:    n.type || 'node',
@@ -116,23 +155,23 @@ export function generateSystemDiagramSVG(
       + ' font-size="14" fill="#aaa">No elements to display</text></svg>';
   }
 
+  const nm: Record<string, VN> = {};
+  vns.forEach(n => { nm[n.id] = n; });
+
   // ── Adjacency + in-degree ──────────────────────────────────────────────────
-  const adj:    Record<string, string[]> = {};
-  const adjRev: Record<string, string[]> = {};
-  const inDeg:  Record<string, number>   = {};
-  vns.forEach(n => { adj[n.id] = []; adjRev[n.id] = []; inDeg[n.id] = 0; });
+  const adj:   Record<string, string[]> = {};
+  const inDeg: Record<string, number>   = {};
+  vns.forEach(n => { adj[n.id] = []; inDeg[n.id] = 0; });
   ves.forEach(e => {
     if (adj[e.from])   adj[e.from].push(e.to);
-    if (adjRev[e.to])  adjRev[e.to].push(e.from);
     if (e.to in inDeg) inDeg[e.to] = (inDeg[e.to] || 0) + 1;
   });
 
-  // ── Kahn's topological sort → longest-path DP ─────────────────────────────
+  // ── Topological sort (Kahn) ────────────────────────────────────────────────
   const inDegCopy = { ...inDeg };
   const topoQ: string[] = vns.filter(n => !inDegCopy[n.id]).map(n => n.id);
   const topoOrder: string[] = [];
   const visited = new Set<string>();
-
   while (topoQ.length > 0) {
     const u = topoQ.shift()!;
     if (visited.has(u)) continue;
@@ -145,7 +184,7 @@ export function generateSystemDiagramSVG(
   }
   vns.forEach(n => { if (!visited.has(n.id)) topoOrder.push(n.id); });
 
-  // Longest-path DP over topo order
+  // ── Longest-path DP → column index ────────────────────────────────────────
   const lvl: Record<string, number> = {};
   vns.forEach(n => { lvl[n.id] = 0; });
   for (const u of topoOrder) {
@@ -156,89 +195,102 @@ export function generateSystemDiagramSVG(
   }
 
   // ── Detect LATERAL nodes ───────────────────────────────────────────────────
-  // A lateral node is a root (in-degree 0) with exactly 1 outgoing neighbor
-  // that itself has a higher level (i.e. the lateral node branches off mid-network).
-  // Classic example: a surge tank that tees into a junction.
-  // These are pulled OUT of the main horizontal layout and placed
-  // directly ABOVE their anchor node instead.
+  // A root node (in-degree 0) with exactly 1 outgoing edge whose target has
+  // level > 0 is "lateral" — it branches off mid-network (e.g. a surge tank).
+  // Pull these out of the main horizontal column layout and place them
+  // vertically adjacent to their anchor node instead.
   const lateralSet    = new Set<string>();
-  const lateralAnchor: Record<string, string> = {};  // lateralId → anchorId
+  const lateralAnchor: Record<string, string> = {};
 
   vns.forEach(n => {
-    if ((inDeg[n.id] ?? 0) !== 0) return;            // must be a root
+    if ((inDeg[n.id] ?? 0) !== 0) return;
     const neighbors = adj[n.id] || [];
-    if (neighbors.length !== 1) return;               // must have exactly 1 successor
+    if (neighbors.length !== 1) return;
     const anchorId = neighbors[0];
-    if ((lvl[anchorId] ?? 0) > 0) {                  // anchor is not also a root
+    if ((lvl[anchorId] ?? 0) > 0) {
       lateralSet.add(n.id);
       lateralAnchor[n.id] = anchorId;
     }
   });
 
-  // ── Group by level → exclude laterals ─────────────────────────────────────
+  // ── Group non-lateral nodes by column level ────────────────────────────────
   const byLv: Record<number, string[]> = {};
   vns.forEach(n => {
-    if (lateralSet.has(n.id)) return;                 // handled separately
+    if (lateralSet.has(n.id)) return;
     const l = lvl[n.id] ?? 0;
     if (!byLv[l]) byLv[l] = [];
     byLv[l].push(n.id);
   });
 
-  const nm: Record<string, VN> = {};
-  vns.forEach(n => { nm[n.id] = n; });
+  // ── Sort each column by CANVAS y-position ─────────────────────────────────
+  // This is the key insight: the user's canvas layout already encodes the
+  // correct top-to-bottom ordering of branches. We read those positions
+  // directly instead of guessing from graph topology.
+  Object.values(byLv).forEach(ids => {
+    ids.sort((a, b) => {
+      const vna = nm[a];
+      const vnb = nm[b];
+      const ay  = getCanvasY(a, vna.srcType, vna.srcId, nodes, edges);
+      const by2 = getCanvasY(b, vnb.srcType, vnb.srcId, nodes, edges);
+      return ay - by2;
+    });
+  });
 
-  const nLevels      = Math.max(...Object.keys(byLv).map(Number)) + 1;
-  const maxPerLevel  = Math.max(...Object.values(byLv).map(a => a.length));
-  const labelPadV    = 32;
+  // ── Compute SVG dimensions ─────────────────────────────────────────────────
+  const nLevels     = Math.max(...Object.keys(byLv).map(Number)) + 1;
+  const maxPerLevel = Math.max(...Object.values(byLv).map(a => a.length));
 
-  // Extra top padding to accommodate lateral nodes placed above the main rows
-  const topPad = lateralSet.size > 0 ? LATERAL_OFFSET + STH + 20 : 0;
+  // Find canvas y-extent of lateral nodes relative to their anchors to size
+  // the top/bottom padding correctly.
+  let maxAbove = 0; // how far above the main centre a lateral can sit
+  lateralSet.forEach(id => {
+    const vn  = nm[id];
+    const an  = nm[lateralAnchor[id]];
+    const idy = getCanvasY(id, vn.srcType, vn.srcId, nodes, edges);
+    const acy = getCanvasY(an.id, an.srcType, an.srcId, nodes, edges);
+    const diff = acy - idy; // positive → lateral is ABOVE anchor on canvas
+    if (diff > 0) maxAbove = Math.max(maxAbove, diff);
+  });
+
+  // Extra vertical headroom for lateral nodes above the main layout
+  const topPad = lateralSet.size > 0 ? Math.min(maxAbove + 50, 140) : 0;
 
   const svgW = MG * 2 + (nLevels - 1) * SX + RRW + 80;
-  const svgH = Math.max(260, topPad + MG * 2 + (maxPerLevel - 1) * SY + STH + labelPadV + 40);
+  const svgH = Math.max(260, topPad + MG * 2 + (maxPerLevel - 1) * SY + STH + 60);
 
+  // ── Assign 2-D positions ───────────────────────────────────────────────────
   const pos: Record<string, { x: number; y: number }> = {};
-
-  // Initial vertical placement centred in the lower portion (below topPad)
-  const mainTop = topPad + MG;
+  const mainCentreY = topPad + MG + ((svgH - topPad - MG * 2) / 2);
 
   Object.entries(byLv).forEach(([lStr, ids]) => {
-    const l       = parseInt(lStr);
-    const cx      = MG + l * SX;
-    const totalH  = (ids.length - 1) * SY;
-    const startY  = mainTop + (svgH - mainTop - MG) / 2 - totalH / 2;
+    const l      = parseInt(lStr);
+    const cx     = MG + l * SX;
+    const totalH = (ids.length - 1) * SY;
+    const startY = mainCentreY - totalH / 2;
     ids.forEach((id, i) => {
       pos[id] = { x: cx, y: startY + i * SY };
     });
   });
 
-  // ── Re-order rows at each level by predecessor-Y score ────────────────────
-  // (only score based on NON-lateral predecessors so lateral nodes don't skew rows)
-  for (let l = 1; l < nLevels; l++) {
-    const ids = byLv[l];
-    if (!ids || ids.length < 2) continue;
-    const score: Record<string, number> = {};
-    ids.forEach(id => {
-      const preds = ves
-        .filter(ve => ve.to === id && pos[ve.from] && !lateralSet.has(ve.from))
-        .map(ve => pos[ve.from].y);
-      score[id] = preds.length ? preds.reduce((a, b) => a + b, 0) / preds.length : 0;
-    });
-    ids.sort((a, b) => (score[a] || 0) - (score[b] || 0));
-    const totalH = (ids.length - 1) * SY;
-    const startY = mainTop + (svgH - mainTop - MG) / 2 - totalH / 2;
-    ids.forEach((id, i) => {
-      pos[id] = { x: pos[id].x, y: startY + i * SY };
-    });
-  }
-
-  // ── Place lateral nodes directly ABOVE their anchor ───────────────────────
+  // ── Place lateral nodes relative to their anchor ───────────────────────────
+  // Determine above/below from canvas positions; preserve the visual intent.
   lateralSet.forEach(id => {
-    const anchorId = lateralAnchor[id];
-    const ap = pos[anchorId];
-    if (ap) {
-      pos[id] = { x: ap.x, y: ap.y - LATERAL_OFFSET };
-    }
+    const vn      = nm[id];
+    const ancId   = lateralAnchor[id];
+    const an      = nm[ancId];
+    const ap      = pos[ancId];
+    if (!ap) return;
+
+    const idy  = getCanvasY(id,    vn.srcType, vn.srcId, nodes, edges);
+    const acy  = getCanvasY(ancId, an.srcType, an.srcId, nodes, edges);
+    const above = idy < acy; // on canvas the lateral sits above the anchor
+
+    // Scale canvas offset to diagram row pitch for natural spacing
+    const canvasDiff  = Math.abs(acy - idy);
+    const scaleFactor = SY / 120; // 120 px = typical canvas row gap
+    const diagOffset  = Math.max(SY * 0.9, Math.min(canvasDiff * scaleFactor, SY * 2));
+
+    pos[id] = { x: ap.x, y: ap.y + (above ? -diagOffset : diagOffset) };
   });
 
   // ── Detect parallel edges ──────────────────────────────────────────────────
@@ -251,16 +303,13 @@ export function generateSystemDiagramSVG(
     pairCount[k] = (pairCount[k] ?? 0) + 1;
   });
 
-  // ── SVG rendering ─────────────────────────────────────────────────────────
+  // ── SVG header ────────────────────────────────────────────────────────────
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${svgW}" height="${svgH}"
   viewBox="0 0 ${svgW} ${svgH}" style="background:white;font-family:Arial,sans-serif">
 <defs>
   <marker id="arr" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
     <polygon points="0 0, 9 3.5, 0 7" fill="#555"/>
   </marker>
-  <filter id="sh" x="-20%" y="-20%" width="140%" height="140%">
-    <feDropShadow dx="1" dy="1" stdDeviation="2" flood-color="#0003"/>
-  </filter>
 </defs>
 <style>
   .ng { cursor: pointer; }
@@ -268,7 +317,7 @@ export function generateSystemDiagramSVG(
 </style>
 `;
 
-  // Edges first (under nodes)
+  // ── Draw edges (under nodes) ───────────────────────────────────────────────
   ves.forEach(ve => {
     const p1 = pos[ve.from];
     const p2 = pos[ve.to];
@@ -280,25 +329,37 @@ export function generateSystemDiagramSVG(
     const isFromLateral = lateralSet.has(ve.from);
     const isToLateral   = lateralSet.has(ve.to);
 
-    // ── Vertical edge: lateral node → its anchor (drawn top-to-bottom) ──────
-    if (isFromLateral && !isToLateral) {
-      const x1 = p1.x;
-      const y1 = p1.y + nHH(t1);   // bottom of lateral node
-      const x2 = p2.x;
-      const y2 = p2.y - nHH(t2);   // top of anchor node
+    // ── Vertical edge for lateral connections (e.g. surge tank → junction) ──
+    if (isFromLateral || isToLateral) {
+      // Determine which end is the lateral and which is the anchor
+      const lateralId  = isFromLateral ? ve.from : ve.to;
+      const anchorId   = isFromLateral ? ve.to   : ve.from;
+      const lp = pos[lateralId];
+      const ap = pos[anchorId];
+      if (!lp || !ap) return;
+      const lt = nm[lateralId]?.type || 'node';
+      const at = nm[anchorId]?.type  || 'node';
 
-      const sty = 'stroke="#555" stroke-width="1.5"';
-      const d   = `M${x1} ${y1} L${x2} ${y2}`;
-      svg += `<path d="${d}" ${sty} fill="none" marker-end="url(#arr)"/>\n`;
+      // Connect bottom of upper node to top of lower node
+      const [upper, lower, ut, at2] = lp.y < ap.y
+        ? [lp, ap, lt, at]
+        : [ap, lp, at, lt];
 
-      // Conduit label midpoint
+      const x1 = upper.x;
+      const y1 = upper.y + nHH(ut);
+      const x2 = lower.x;
+      const y2 = lower.y - nHH(at2);
+      const d  = `M${x1} ${y1} L${x2} ${y2}`;
+
+      svg += `<path d="${d}" stroke="#555" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>\n`;
+
       if (ve.label) {
-        const lx  = x1;
-        const ly  = (y1 + y2) / 2;
-        const lw  = ve.label.length * 7 + 16;
-        const lh  = 14;
+        const lx = x1;
+        const ly = (y1 + y2) / 2;
+        const lw = ve.label.length * 7 + 16;
+        const lh = 14;
         svg += `<g class="cg" data-srcid="${esc(ve.srcEdgeId)}" data-srctype="edge" style="pointer-events:all;cursor:pointer">
-  <rect class="lbl" x="${lx - lw / 2}" y="${ly - lh / 2}" width="${lw}" height="${lh}"
+  <rect class="lbl" x="${lx - lw/2}" y="${ly - lh/2}" width="${lw}" height="${lh}"
     rx="7" fill="white" stroke="#888" stroke-width="1"/>
   <text class="lbl" x="${lx}" y="${ly + 4.5}" text-anchor="middle" font-size="9"
     font-weight="700" fill="#333" font-family="Arial,sans-serif">${esc(ve.label)}</text>
@@ -327,22 +388,22 @@ export function generateSystemDiagramSVG(
     if (Math.abs(y1 - y2) < 3) {
       d = `M${x1} ${y1} L${x2} ${y2}`;
     } else {
+      // Elbow: go halfway horizontally, then snap to target row
       const mx = x1 + (x2 - x1) * 0.5;
       d = `M${x1} ${y1} L${mx} ${y1} L${mx} ${y2} L${x2} ${y2}`;
     }
 
     svg += `<path d="${d}" ${sty} fill="none" ${mk}/>\n`;
 
-    // Conduit label pill
     if (ve.label) {
       const lx = Math.abs(y1 - y2) < 3
         ? (x1 + x2) / 2
-        : (x1 * 3 + x2) / 4;
-      const ly  = Math.abs(y1 - y2) < 3 ? y1 : y1;
-      const lw  = ve.label.length * 7 + 16;
-      const lh  = 14;
+        : x1 + (x2 - x1) * 0.25;
+      const ly = y1;
+      const lw = ve.label.length * 7 + 16;
+      const lh = 14;
       svg += `<g class="cg" data-srcid="${esc(ve.srcEdgeId)}" data-srctype="edge" style="pointer-events:all;cursor:pointer">
-  <rect class="lbl" x="${lx - lw / 2}" y="${ly - lh / 2}" width="${lw}" height="${lh}"
+  <rect class="lbl" x="${lx - lw/2}" y="${ly - lh/2}" width="${lw}" height="${lh}"
     rx="7" fill="white" stroke="#888" stroke-width="1"/>
   <text class="lbl" x="${lx}" y="${ly + 4.5}" text-anchor="middle" font-size="9"
     font-weight="700" fill="#333" font-family="Arial,sans-serif">${esc(ve.label)}</text>
@@ -350,7 +411,7 @@ export function generateSystemDiagramSVG(
     }
   });
 
-  // Nodes on top
+  // ── Draw nodes (on top) ────────────────────────────────────────────────────
   vns.forEach(vn => {
     const p = pos[vn.id];
     if (!p) return;
@@ -359,7 +420,6 @@ export function generateSystemDiagramSVG(
 
   const labelDisplay = showLabels ? '' : ' .lbl{display:none}';
   svg = svg.replace('<style>', `<style>${labelDisplay}`);
-
   svg += '</svg>';
   return svg;
 }
